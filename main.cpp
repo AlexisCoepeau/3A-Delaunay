@@ -5,6 +5,25 @@
 #include <string>
 #include <cmath>
 
+/**
+ * @mainpage Projet Maillage - Documentation
+ * Ce projet rentre dans le cadre du <a href="https://moodle.bordeaux-inp.fr/pluginfile.php/161133/mod_resource/content/4/projet_delaunay.pdf">projet</a> de l'<a href='https://enseirb-matmeca.bordeaux-inp.fr/fr'>ENSEIRB-MATMECA</a> de 3A du module <a href="https://ent.bordeaux-inp.fr/render.userLayoutRootNode.uP?uP_sparam=activeTab&activeTab=5&uP_root=u28l1n40">Technique de Maillage</a>.
+ * 
+ * @authors 
+ * <ul>
+ * <li> <a href='https://www.linkedin.com/in/alexis-co%C3%ABpeau/'>Alexis COËPEAU</a> </li>
+ * <li> <a href='https://www.linkedin.com/in/guillaume-damour-5021331b7/'>Guillaume DAMOUR</a> </li>
+ * </ul>
+ * 
+ * @par Encadrant
+ * <ul>
+ * <li> <a href="https://nicolasbarral.fr/">Nicolas BARRAL</a> </li>
+ * </ul>
+ * 
+ * @copyright Ce travail est la propriété de l'<a href='https://enseirb-matmeca.bordeaux-inp.fr/fr'>ENSEIRB-MATMECA</a>.
+ * @date Décembre 2022.
+ */
+
 using namespace std;
 
 struct maillage
@@ -14,31 +33,38 @@ struct maillage
     int N_Vertices ;
 
 	/** 
-	 * @brief Tableau des sommets
-	 * @details Le tableau de sommets est de taille 2 N_vertices. Il est construit comme :
+	 * @brief Tableau des sommets du maillage
+	 * @details Le tableau de sommets est de taille 2 N_vertices. Il contient les coordonnées de chaque sommets du maillage :
 	 * <table>
-	 * <tr style="text-align:center"> <td> indice : </td> <td> </td>  <td> \f$\cdots\f$ </td> <td> \f$2i\f$ </td> <td> \f$2i+1\f$ </td> <td> \f$\cdots\f$ </td> </tr>
+	 * <tr style="text-align:center"> <td> Indice : </td> <td> </td>  <td> \f$\cdots\f$ </td> <td> \f$2i\f$ </td> <td> \f$2i+1\f$ </td> <td> \f$\cdots\f$ </td> </tr>
 	 * <tr style="text-align:center"> <td> Vertices : </td> <td> </td> <td> \f$\cdots\f$ </td> <td> \f$x_i\f$ </td> <td> \f$y_i\f$ </td> <td> \f$\cdots\f$ </td> </tr>
 	 * </table>
 	*/
 	double * Vertices;
-	// Segment entre deux sommets numérotés
-	/** @brief Nombre de cotés du maillage */
-    int N_Edges ;
 
+	/** @brief Nombre de segments du maillage */
+    int N_Edges ;
 	/** 
-	 * @brief Tableau des sommets
-	 * @details Le tableau de sommets est de taille 2 N_vertices. Il est construit comme :
+	 * @brief Tableau des segments du maillage
+	 * @details Le tableau de segments est de taille 2 N_Edges. Il est contient le numéro des sommets pour chaque segment du maillage :
 	 * <table>
-	 * <tr style="text-align:center"> <td> indice : </td> <td> </td>  <td> \f$\cdots\f$ </td> <td> \f$2i\f$ </td> <td> \f$2i+1\f$ </td> <td> \f$\cdots\f$ </td> </tr>
-	 * <tr style="text-align:center"> <td> Vertices : </td> <td> </td> <td> \f$\cdots\f$ </td> <td> \f$x_i\f$ </td> <td> \f$y_i\f$ </td> <td> \f$\cdots\f$ </td> </tr>
+	 * <tr style="text-align:center"> <td> Indice : </td> <td> </td>  <td> \f$\cdots\f$ </td> <td> \f$2i\f$ </td> <td> \f$2i+1\f$ </td> <td> \f$\cdots\f$ </td> </tr>
+	 * <tr style="text-align:center"> <td> Edges : </td> <td> </td> <td> \f$\cdots\f$ </td> <td> \f$S_1\f$ </td> <td> \f$S_2\f$ </td> <td> \f$\cdots\f$ </td> </tr>
 	 * </table>
 	*/
 	int * Edges;
 	// Triangle entre trois sommets numérotés
+
 	/** @brief Nombre de triangles du maillage */
     int N_Triangles ;
-	/** @brief Tableau des triangles du maillage */
+	/** 
+	 * @brief Tableau des triangles du maillage
+	 * @details Le tableau de triangles est de taille 2 N_Triangles. Il est contient le numéro des sommets pour chaque triangles du maillage :
+	 * <table>
+	 * <tr style="text-align:center"> <td> Indice : </td> <td> </td>  <td> \f$\cdots\f$ </td> <td> \f$3i\f$ </td> <td> \f$3i+1\f$ </td> <td> \f$3i+2\f$ </td>  <td> \f$\cdots\f$ </td> </tr>
+	 * <tr style="text-align:center"> <td> Triangles : </td> <td> </td> <td> \f$\cdots\f$ </td> <td> \f$S_1\f$ </td> <td> \f$S_2\f$ </td> <td> \f$S_3\f$ </td> <td> \f$\cdots\f$ </td> </tr>
+	 * </table>
+	*/
 	int * Triangles;
     int N_Corners ;
     int * Corners;
@@ -48,7 +74,7 @@ struct maillage
 
 /* PROTOTYPES */
 
-double Distances2D(const double, const double, const double, const double) ;
+double Distance2D(const double, const double, const double, const double) ;
 double Qualite2D(const int, const struct maillage) ;
 void Chargement(const char*, struct maillage*) ;
 
@@ -56,7 +82,6 @@ void Chargement(const char*, struct maillage*) ;
 /**
  * @brief Fonction principale
  * @details Usage : ./main <fichier.mesh>
- * 
  */
 int main(int argc, char* argv[])
 {
@@ -83,11 +108,11 @@ int main(int argc, char* argv[])
 	}
 
 	//On est sur le triangle contenant le point initial donc il est forcement noté -1
-	for (arretes du triangle contenant le point noté -1)
+	/*for (arretes du triangle contenant le point noté -1)
 		Tant qu'on ne tombe pas sur un triangle ayant deux voisins noté 0 on continue à aller sur ses triangles voisins
 			fonction(sur nouveau triangle)
 			Tant qu'on ne tombe pas sur un triangle ayant deux voisins noté 0 on continue à aller sur ses triangles voisins
-				fonction(sur nouveau triangle)
+				fonction(sur nouveau triangle)*/
 
 
 	return 0;
@@ -151,11 +176,11 @@ double Qualite2D(const int i, const struct maillage mesh)
  * @details
  * Procédure qui prend un fichier d'entrée au format `.mesh` et qui charge les données dans une structure `maillage`.
  * 
- * @param[in] fichier Fichier de données au format `.mesh`
- * @param[out] mesh Structure maillage
+ * @param[in] fichier Fichier de données au format `.mesh`.
+ * @param[out] mesh Structure maillage.
  * 
  * @warning
- * La procédure arrête le programme avec `EXIT_FAILURE` si le fichier ne peut pas être ouvert.
+ * La procédure arrête le programme avec `EXIT_FAILURE` et affiche un message d'erreur si le fichier ne peut pas être ouvert.
  * 
  * @sa maillage
  */
@@ -238,6 +263,14 @@ void Chargement(const char* fichier, struct maillage *mesh)
     }
 }
 
+/** 
+ * @brief Fonction qui teste le critère de Delaunay pour un point et un triangle donné.
+ * 
+ * @details La fonction renvoie -1 si le point se situe dans la boule circonscrite du triangle numéro \f$i\f$ du maillage. 0 sinon
+ * @param[in] x Position selon x du point à tester.
+ * @param[in] y Position selon y du point à tester.
+ * @param[in] mesh Structure de maillage.
+*/
 int admissibilite(double x, double y, int i, struct maillage mesh)
 {
 	//Sommets du triangle i
@@ -249,7 +282,7 @@ int admissibilite(double x, double y, int i, struct maillage mesh)
 	s3x = mesh.Vertices[(mesh.Triangles[3*i+2]-1)*2];
 	s3y = mesh.Vertices[(mesh.Triangles[3*i+2]-1)*2+1];
 	//Propriétés du cercle circonscrit au triangle
-	double a, b, c, d, e, f, xcentre, ycentre, rayon
+	double a, b, c, d, e, f, g, xcentre, ycentre, rayon ;
 	//Distance entre le point et le centre du cercle circonscrit
 	double dist=0.0;
 	//Admissible -1 si ne respecte pas le critère de Delaunay et 0 sinon
@@ -261,7 +294,7 @@ int admissibilite(double x, double y, int i, struct maillage mesh)
 	d = s3y - s1y;
 	e = s2x*s2x - s1x*s1x + s2y*s2x - s1y*s1y;
 	f = s3x*s3x - s1x*s1x + s3y*s3y - s1y*s1y;
-	g = -(1./(2.*(a*d-b*c));
+	g = -(1./(2.*(a*d-b*c)));
 
 	xcentre = g*( d*e - b*f);
 	ycentre = g*(-c*e + a*f);
