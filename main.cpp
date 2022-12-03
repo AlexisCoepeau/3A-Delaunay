@@ -77,6 +77,9 @@ struct maillage
 double Distance2D(const double, const double, const double, const double) ;
 double Qualite2D(const int, const struct maillage) ;
 void Chargement(const char*, struct maillage*) ;
+void TriangleToNodes(const struct maillage &, const int, int &, int &, int &);
+void EdgeToNodes(const struct maillage &, const int, int &, int &) ;
+int Admissibilite(const double, const double, const int, const struct maillage) ;
 
 
 /**
@@ -94,17 +97,17 @@ int main(int argc, char* argv[])
     }
 
 	// Déclaration du maillage
-	struct maillage mesh;
+	struct maillage mesh_Initial;
 
 	// Chargement des données de maillage
-	Chargement(argv[1], &mesh) ;
+	Chargement(argv[1], &mesh_Initial) ;
 
 
 	//Affichage de la qualité
 	for(int i=0; i<2; i++)
 	{
 		cout << "-------------------------------------------------------" << endl;
-		cout << "Qualité triangle " << i << "=" << Qualite2D(i, mesh) << endl;
+		cout << "Qualité triangle " << i << "=" << Qualite2D(i, mesh_Initial) << endl;
 	}
 
 	//On est sur le triangle contenant le point initial donc il est forcement noté -1
@@ -129,6 +132,9 @@ int main(int argc, char* argv[])
  * @param[in] y2 Position selon y du point 2.
  * @par Théorie et Algorithmie
  * \f$ distance = \sqrt{(x_1-x_2)^2+(y_1-y_2)^2}\f$
+ * 
+ * @par Complexité
+ * Temps constant.
 */
 double Distance2D(const double x1, const double y1, const double x2, const double y2)
 {
@@ -140,8 +146,8 @@ double Distance2D(const double x1, const double y1, const double x2, const doubl
 }
 
 /**
- * @brief Fonction calculant la qualité d'un triangle numéro \f$i\f$ pour un maillage donné.
- * @param[in] i numéro du triangle.
+ * @brief Fonction calculant la qualité d'un triangle numéro \f$numTriangle\f$ pour un maillage donné.
+ * @param[in] numTriangle numéro du triangle.
  * @param[in] mesh maillage.
  * @par Théorie et Algorithmie
  * Si on note \f$S_1(x_1,y_1), S_2(x_2,y_2)\f$ et \f$S_3(x_3,y_3)\f$ les sommets du triangle considéré, 
@@ -149,16 +155,19 @@ double Distance2D(const double x1, const double y1, const double x2, const doubl
  * <li> \f$aire = \frac{1}{2}\begin{vmatrix} x_2-x_1 & x_3-x_1 \\ y_2-y_1 & y_3-y_1 \end{vmatrix}\f$</li>
  * <li> \f$Qualité = \frac{\sqrt{3}}{12} \frac{S_1S_2^2+S_1S_3^2+S_2S_3^2}{aire}\f$ </li>
  * </ul>
+ * 
+ * @par Complexité
+ * Temps constant.
 */
-double Qualite2D(const int i, const struct maillage mesh)
+double Qualite2D(const int numTriangle, const struct maillage mesh)
 {
 	double Q, aire, s1x, s1y, s2x, s2y, s3x, s3y;
-	s1x = mesh.Vertices[(mesh.Triangles[3*i]-1)*2];
-	s1y = mesh.Vertices[(mesh.Triangles[3*i]-1)*2+1];
-	s2x = mesh.Vertices[(mesh.Triangles[3*i+1]-1)*2];
-	s2y = mesh.Vertices[(mesh.Triangles[3*i+1]-1)*2+1];
-	s3x = mesh.Vertices[(mesh.Triangles[3*i+2]-1)*2];
-	s3y = mesh.Vertices[(mesh.Triangles[3*i+2]-1)*2+1];
+	s1x = mesh.Vertices[(mesh.Triangles[3*numTriangle]-1)*2];
+	s1y = mesh.Vertices[(mesh.Triangles[3*numTriangle]-1)*2+1];
+	s2x = mesh.Vertices[(mesh.Triangles[3*numTriangle+1]-1)*2];
+	s2y = mesh.Vertices[(mesh.Triangles[3*numTriangle+1]-1)*2+1];
+	s3x = mesh.Vertices[(mesh.Triangles[3*numTriangle+2]-1)*2];
+	s3y = mesh.Vertices[(mesh.Triangles[3*numTriangle+2]-1)*2+1];
 
 	aire = abs((1./2.)*((s2x-s1x)*(s3y-s1y)-(s3x-s1x)*(s2y-s1y)));
 
@@ -179,9 +188,11 @@ double Qualite2D(const int i, const struct maillage mesh)
  * @param[in] fichier Fichier de données au format `.mesh`.
  * @param[out] mesh Structure maillage.
  * 
+ * @par Complexité
+ * Temps linéaire à la longueur du fichier d'entrée.
+ * 
  * @warning
  * La procédure arrête le programme avec `EXIT_FAILURE` et affiche un message d'erreur si le fichier ne peut pas être ouvert.
- * 
  * @sa maillage
  */
 void Chargement(const char* fichier, struct maillage *mesh)
@@ -213,7 +224,7 @@ void Chargement(const char* fichier, struct maillage *mesh)
 
 				for(int i=0; i<mesh->N_Edges; i++)
 				{
-					monFlux >> mesh->Edges[i];
+					monFlux >> mesh->Edges[2*i];
 					monFlux >> mesh->Edges[2*i+1];
 
 					monFlux >> indice;
@@ -266,21 +277,25 @@ void Chargement(const char* fichier, struct maillage *mesh)
 /** 
  * @brief Fonction qui teste le critère de Delaunay pour un point et un triangle donné.
  * 
- * @details La fonction renvoie -1 si le point se situe dans la boule circonscrite du triangle numéro \f$i\f$ du maillage. 0 sinon
+ * @details La fonction renvoie -1 si le point se situe dans la boule circonscrite du triangle de numéro \f$numTriangle\f$ du maillage. 0 sinon
  * @param[in] x Position selon x du point à tester.
  * @param[in] y Position selon y du point à tester.
+ * @param[in] numTriangle numéro du triangle.
  * @param[in] mesh Structure de maillage.
+ * 
+ * @par Complexité
+ * Temps constant.
 */
-int admissibilite(double x, double y, int i, struct maillage mesh)
+int Admissibilite(const double x, const double y, const int numTriangle, const struct maillage mesh)
 {
-	//Sommets du triangle i
+	//Sommets du triangle numTriangle
 	double s1x, s1y, s2x, s2y, s3x, s3y;
-	s1x = mesh.Vertices[(mesh.Triangles[3*i]-1)*2];
-	s1y = mesh.Vertices[(mesh.Triangles[3*i]-1)*2+1];
-	s2x = mesh.Vertices[(mesh.Triangles[3*i+1]-1)*2];
-	s2y = mesh.Vertices[(mesh.Triangles[3*i+1]-1)*2+1];
-	s3x = mesh.Vertices[(mesh.Triangles[3*i+2]-1)*2];
-	s3y = mesh.Vertices[(mesh.Triangles[3*i+2]-1)*2+1];
+	s1x = mesh.Vertices[(mesh.Triangles[3*numTriangle]-1)*2];
+	s1y = mesh.Vertices[(mesh.Triangles[3*numTriangle]-1)*2+1];
+	s2x = mesh.Vertices[(mesh.Triangles[3*numTriangle+1]-1)*2];
+	s2y = mesh.Vertices[(mesh.Triangles[3*numTriangle+1]-1)*2+1];
+	s3x = mesh.Vertices[(mesh.Triangles[3*numTriangle+2]-1)*2];
+	s3y = mesh.Vertices[(mesh.Triangles[3*numTriangle+2]-1)*2+1];
 	//Propriétés du cercle circonscrit au triangle
 	double a, b, c, d, e, f, g, xcentre, ycentre, rayon ;
 	//Distance entre le point et le centre du cercle circonscrit
@@ -309,4 +324,37 @@ int admissibilite(double x, double y, int i, struct maillage mesh)
 	}
 
 	return Delaunay;
+}
+
+/**
+ * @brief Procédure qui renvoie la liste des sommets d'un triangle donné.
+ * 
+ * @param[in] mesh Structure de maillage.
+ * @param[in] numTriangle Numéro du triangle.
+ * @param[in] S1 numéro du sommet 1.
+ * @param[in] S2 numéro du sommet 2.
+ * @param[in] S3 numéro du sommet 3.
+ * 
+ * @par Complexité
+ * Temps constant.
+*/
+void TriangleToNodes(const struct maillage &mesh, const int numTriangle, int &S1, int &S2, int &S3){
+	S1 = mesh.Triangles[3*numTriangle] ;
+	S2 = mesh.Triangles[3*numTriangle+1] ;
+	S3 = mesh.Triangles[3*numTriangle+2] ;
+}
+
+/**
+ * @brief Procédure qui renvoie la liste des sommets d'un côté donné.
+ * 
+ * @param[in] mesh Structure de maillage.
+ * @param[in] numEdge Numéro du coté.
+ * @param[in] S1 numéro du sommet 1.
+ * @param[in] S2 numéro du sommet 2.
+ * @par Complexité
+ * Temps constant.
+*/
+void EdgeToNodes(const struct maillage &mesh, const int numEdge, int &S1, int &S2){
+	S1 = mesh.Edges[2*numEdge] ;
+	S2 = mesh.Edges[2*numEdge+1] ;
 }
