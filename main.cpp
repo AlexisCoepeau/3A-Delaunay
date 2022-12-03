@@ -80,6 +80,9 @@ void Chargement(const char*, struct maillage*) ;
 void TriangleToNodes(const struct maillage &, const int, int &, int &, int &);
 void EdgeToNodes(const struct maillage &, const int, int &, int &) ;
 int Admissibilite(const double, const double, const int, const struct maillage) ;
+void free(struct maillage) ;
+void NodeToEdges(const struct maillage &, const int, int* &, int &) ;
+void NodeToTriangles(const struct maillage &, const int, int* &, int &);
 
 
 /**
@@ -118,12 +121,28 @@ int main(int argc, char* argv[])
 				fonction(sur nouveau triangle)*/
 
 
+
+	free(mesh_Initial) ;
+
 	return 0;
 }
 
-
-
 /* CONTAINS */
+
+/**
+ * @brief Fonction `free` surchargée pour la libération mémoire d'un maillage.
+ * @details Fonction qui libère la mémoire allouée lors de la génération des chaps d'un maillage.
+ * @param mesh Structure de maillage.
+ * @sa maillage
+ */
+void free(struct maillage mesh){
+	free(mesh.Vertices) ;
+	free(mesh.Edges) ;
+	free(mesh.Triangles) ;
+	free(mesh.Corners) ;
+	free(mesh.Ridges) ;
+}
+
 /**
  * @brief Fonction renvoyant la distance euclidienne en 2 dimensions entre 2 points.
  * @param[in] x1 Position selon x du point 1.
@@ -357,4 +376,87 @@ void TriangleToNodes(const struct maillage &mesh, const int numTriangle, int &S1
 void EdgeToNodes(const struct maillage &mesh, const int numEdge, int &S1, int &S2){
 	S1 = mesh.Edges[2*numEdge] ;
 	S2 = mesh.Edges[2*numEdge+1] ;
+}
+
+/**
+ * @brief Procédure qui renvoie la liste des côtés dans lequel un sommet donné est engagé.
+ * 
+ * @param[in] mesh Structure de maillage.
+ * @param[in] numSommet Numéro du sommet.
+ * @param tabEdges Liste des cotés <b>non alloué</b> en entrée, <b>alloué</b> en sortie.
+ * @param NEdges Nombres des cotés et taille de tabEdges.
+ * @par Complexité
+ * Linéaire du nombre de côté du maillage mesh.
+*/
+void NodeToEdges(const struct maillage &mesh, const int numSommet, int* &tabEdges, int & NEdges){
+
+	// Variables
+	int S1, S2     ; // Sommets candidats
+	NEdges=0       ; // Nombre de côtés effectifs
+	int* Edges_Max ; // Côtés effectifs
+
+	// Tableau de taille maximale
+	Edges_Max=(int*)malloc(mesh.N_Edges*sizeof(int)) ;
+
+	// Recherche des cotés effectifs
+	for(int edge=0 ; edge < mesh.N_Edges ; edge++){
+		S1 = mesh.Edges[2*edge] ;
+		S2 = mesh.Edges[2*edge+1] ;
+
+		if((numSommet==S1)||(numSommet==S2)){
+			Edges_Max[NEdges] = edge ;
+			NEdges++ ;
+		}
+	}
+
+	// Réaffectation dans un tableau de bonne taille
+	tabEdges=(int*)malloc(NEdges*sizeof(int)) ;	
+	
+	for(int edge=0 ; edge < NEdges ; edge++)
+	 	tabEdges[edge] = Edges_Max[edge] ;
+
+	// Libération du tableau intermédiaire
+	free(Edges_Max) ;
+}
+
+/**
+ * @brief Procédure qui renvoie la liste des triangles dans lequel un sommet donné est engagé.
+ * 
+ * @param[in] mesh Structure de maillage.
+ * @param[in] numSommet Numéro du sommet.
+ * @param tabTriangles Liste des triangles <b>non alloué</b> en entrée, <b>alloué</b> en sortie.
+ * @param NTriangles Nombres des triangles et taille de tabTriangles.
+ * @par Complexité
+ * Linéaire du nombre de triangles du maillage mesh.
+*/
+void NodeToTriangles(const struct maillage &mesh, const int numSommet, int* &tabTriangles, int &NTriangles){
+
+	// Variables
+	int S1, S2, S3     ; // Sommets candidats
+	NTriangles=0       ; // Nombre de côtés effectifs
+	int* Triangles_Max ; // Côtés effectifs
+
+	// Tableau de taille maximale
+	Triangles_Max=(int*)malloc(mesh.N_Triangles*sizeof(int)) ;
+
+	// Recherche des cotés effectifs
+	for(int triangle=0 ; triangle < mesh.N_Triangles ; triangle++){
+		S1 = mesh.Triangles[3*triangle] ;
+		S2 = mesh.Triangles[3*triangle+1] ;
+		S3 = mesh.Triangles[3*triangle+2] ;
+
+		if((numSommet==S1)||(numSommet==S2)||(numSommet==S3)){
+			Triangles_Max[NTriangles] = triangle ;
+			NTriangles++ ;
+		}
+	}
+
+	// Réaffectation dans un tableau de bonne taille
+	tabTriangles=(int*)malloc(NTriangles*sizeof(int)) ;	
+	
+	for(int triangle=0 ; triangle < NTriangles ; triangle++)
+	 	tabTriangles[triangle] = Triangles_Max[triangle] ;
+
+	// Libération du tableau intermédiaire
+	free(Triangles_Max) ;
 }
