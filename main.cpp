@@ -83,6 +83,7 @@ int Admissibilite(const double, const double, const int, const struct maillage) 
 void free(struct maillage) ;
 void NodeToEdges(const struct maillage &, const int, int* &, int &) ;
 void NodeToTriangles(const struct maillage &, const int, int* &, int &);
+bool IsPointInTriangle(const struct maillage &, const int, const double, const double) ;
 
 
 /**
@@ -119,8 +120,6 @@ int main(int argc, char* argv[])
 			fonction(sur nouveau triangle)
 			Tant qu'on ne tombe pas sur un triangle ayant deux voisins noté 0 on continue à aller sur ses triangles voisins
 				fonction(sur nouveau triangle)*/
-
-
 
 	free(mesh_Initial) ;
 
@@ -459,4 +458,53 @@ void NodeToTriangles(const struct maillage &mesh, const int numSommet, int* &tab
 
 	// Libération du tableau intermédiaire
 	free(Triangles_Max) ;
+}
+
+/**
+ * @brief Fonction testant l'appartenance géométrique d'un point à un triangle
+ * @param[in] mesh Structure de maillage.
+ * @param[in] numTriangle Numéro du triangle.
+ * @param[in] x Position selon x du point. 
+ * @param[in] y Position selon y du point. 
+ * @result Booléen T/F
+ * 
+ * @par Théorie et Algorithmie
+ * L'algorithme se base sur le calcul des coordonnées locales du point \f$P(x,y)\f$ dans le triangle numéro `numTriangle`. <br>
+ * Le calcul global est effectué à partir de 4 déterminant de matrices de format \f$2\times2\f$. <br>
+ * Le point est dans le triangle si et seulement si ses 3 coordonnées locales sont positives ou nulles.
+ * 
+ * @par Complexité
+ * Temps constant.
+ */
+bool IsPointInTriangle(const struct maillage &mesh, const int numTriangle, const double x, const double y){
+	
+	// Chargement des données relatives aux sommet du triangle
+	int S1, S2, S3 ;
+	TriangleToNodes(mesh, numTriangle, S1, S2, S3) ;
+
+	double S1x, S1y, S2x, S2y, S3x, S3y ;
+	S1x = mesh.Vertices[2*S1];
+	S1y = mesh.Vertices[2*S1+1];
+	S2x = mesh.Vertices[2*S2];
+	S2y = mesh.Vertices[2*S2+1];
+	S3x = mesh.Vertices[2*S3];
+	S3y = mesh.Vertices[2*S3+1];
+
+	//  double de l'aire signée du triangle (S1, S2, S3)
+	double Daire = ((S2x-S1x)*(S3y-S1y)-(S3x-S1x)*(S2y-S1y));
+	double lambda1, lambda2, lambda3 ;
+	
+	// lambda1 = aire(P, S2, S3)/aire(S1, S2, S3)
+	lambda1 = ((S2x-x)*(S3y-y)-(S3x-x)*(S2y-y))/Daire ;
+
+	// lambda2 = aire(S1, P, S3)/aire(S1, S2, S3)
+	lambda2 = ((x-S1x)*(S3y-S1y)-(S3x-S1x)*(y-S1y))/Daire;
+
+	// lambda3 = aire(S1, S2, P)/aire(S1, S2, S3)
+	lambda3 = ((S2x-S1x)*(y-S1y)-(x-S1x)*(S2y-S1y))/Daire;
+
+	if((lambda1>=0.0)&&(lambda2>=0.0)&&(lambda3>=0.0))
+		return true ;
+	else
+		return false ;
 }
