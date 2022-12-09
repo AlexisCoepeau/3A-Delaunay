@@ -77,13 +77,11 @@ struct maillage
 
 double Distance2D(const double, const double, const double, const double) ;
 double Qualite2D(const int, const struct maillage) ;
-int admissibilite(double x, double y, int i, struct maillage mesh) ;
 void cercle(int i, struct maillage mesh, double x, double y) ;
 void Chargement(const char*, struct maillage*) ;
 void TriangleToNodes(const struct maillage &, const int, int &, int &, int &);
 void EdgeToNodes(const struct maillage &, const int, int &, int &) ;
 int Admissibilite(const double, const double, const int, const struct maillage) ;
-void free(struct maillage) ;
 void NodeToEdges(const struct maillage &, const int, int* &, int &) ;
 void NodeToTriangles(const struct maillage &, const int, int* &, int &);
 bool IsPointInTriangle(const struct maillage &, const int, const double, const double) ;
