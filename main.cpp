@@ -114,6 +114,7 @@ int main(int argc, char* argv[])
 	// 	cout << "-------------------------------------------------------" << endl;
 	// 	cout << "Qualité triangle " << i << "=" << Qualite2D(i, mesh_Initial) << endl;
 	// }
+	// 
 
 	// cercle(1, mesh_Initial, 3.0, 2.5);
   // cout << "Admissibilité = " << Admissibilite(3.0, 2.5, 1, mesh_Initial) << endl;
