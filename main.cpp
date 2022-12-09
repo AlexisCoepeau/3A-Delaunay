@@ -90,6 +90,7 @@ struct maillage
 double Distance2D(const double, const double, const double, const double) ;
 double Qualite2D(const int, const struct maillage &) ;
 void cercle(int, struct maillage &, double, double) ;
+void AjoutePoint(const int, const struct maillage &, struct maillage &) ;
 void Chargement(const char*, struct maillage*) ;
 void EcritureSol(const char*, const struct maillage &) ;
 void TriangleToNodes(const struct maillage &, const int, int &, int &, int &);
@@ -98,6 +99,8 @@ int Admissibilite(const double, const double, const int, const struct maillage &
 void NodeToEdges(const struct maillage &, const int, int* &, int &) ;
 void NodeToTriangles(const struct maillage &, const int, int* &, int &);
 bool IsPointInTriangle(const struct maillage &, const int, const double, const double) ;
+void treatCouple(const int, const int, vector<int> &, vector<int> &) ;
+
 
 /**
  * @brief Fonction principale
@@ -153,6 +156,9 @@ int main(int argc, char* argv[])
   // cout << "Admissibilité = " << Admissibilite(3.0, 7.0, 1, mesh_Initial) << endl;
 
   //Test Delaunay
+
+
+	        
 
 
 	EcritureSol("sortie.sol", mesh_Initial) ;
@@ -840,4 +846,101 @@ bool IsPointInTriangle(const struct maillage &mesh, const int numTriangle, const
 		return true ;
 	else
 		return false ;
+}
+
+/**
+ * @brief Fonction qui ajoute le sommet i du maillage initiale dans le maillage final
+ * @param[in] sommet Numéro du sommet du maillage initial.
+ * @param[in] mesh_Initial Maillage initial.
+ * @param[in] mesh_Final Maillage final.
+ */
+void AjoutePoint(const int sommet, const struct maillage & mesh_Initial, struct maillage & mesh_Final){
+
+	// Déclarations ////////////////////////////////////////////////////
+	vector<int> couple ;         // Contient toutes les pairs de couples.
+	vector<int> nombreFoisSupp ; // contient des labels pour dire si un couple doit être supprimé ou pas.
+
+	vector<int> numTriangle ;    // Liste des triangles à supprimer
+	int nbTriangles(0) ;         // Nombre de triangles à supprimer
+
+	double sommet_x = mesh_Initial.Vertices[2*sommet] ;
+	double sommet_y = mesh_Initial.Vertices[2*sommet+1] ;
+
+	// Balayage des triangles pour tester le critère de Delaunay ///////
+	for(int triangle=0 ; triangle < mesh_Final.N_Triangles ; triangle++){
+		
+		// Stock si le point sommet du maillage initial est dans la boule du triangle triangle du maillage Final
+		int inBouleTriangle=Admissibilite(sommet_x, sommet_y, triangle, mesh_Final) ;
+		
+		if(inBouleTriangle==-1){ // Si le point est dans la boule
+			
+			//Sommet du triangle
+			int S1 = mesh_Final.Triangles[3*triangle] ;
+			int S2 = mesh_Final.Triangles[3*triangle+1] ;
+			int S3 = mesh_Final.Triangles[3*triangle+2] ;
+
+			// S1 S2
+			treatCouple(min(S1,S2), max(S1,S2), couple, nombreFoisSupp) ;
+
+			// S1 S3
+			treatCouple(min(S1,S3), max(S1,S3), couple, nombreFoisSupp) ;
+
+			// S2 S3
+			treatCouple(min(S2,S3), max(S2,S3), couple, nombreFoisSupp) ;
+
+			// On stock le triangle comme étant à supprimer
+			numTriangle.push_back(triangle) ;
+			nbTriangles++ ;
+		}
+	}
+
+	// ÉCRITURE DES NOUVEAUX TRIANGLES
+
+	// Réécriture sur les triangles à supprimer + les derniers triangles finaux
+	int numRemplacement(0) ;
+
+	// On balaye les couples pour voir ceux qui sont à garder
+	for(int numcouple=0 ; numcouple<couple.size() ; numcouple++){
+		
+		// Si on garde ce couple pour un nouveau triangle
+		if(nombreFoisSupp[numcouple]==2){
+			
+			// Sommets basé sur ce couple et le sommet à ajouter dans la triangulation.
+			int S1 = couple[2*numcouple] ;
+			int S2 = couple[2*numcouple+1] ;
+			int S3 = sommet ;
+
+
+			if(numRemplacement<nbTriangles-1){
+				// On écrase le numRemplacement triangle à supprimer
+				mesh_Final.Triangles[3*numTriangle[numRemplacement]] = S1 ; 
+				mesh_Final.Triangles[3*numTriangle[numRemplacement]+1] = S2 ; 
+				mesh_Final.Triangles[3*numTriangle[numRemplacement]+2] = S3 ; 
+			}else{
+				// On ajoute les derniers triangles 
+				mesh_Final.Triangles.push_back(S1) ;
+				mesh_Final.Triangles.push_back(S2) ;
+				mesh_Final.Triangles.push_back(S3) ;
+			}
+			numRemplacement++ ;
+		}
+	}
+}
+
+// test si le couple S1 S2 est dans couple
+// S1 < S2
+void treatCouple(const int S1, const int S2, vector<int> &couple, vector<int> & status){
+	int taille=couple.size()/2 ;
+
+	for(int i=0 ; i< taille ; i++){
+		if((S1==couple[2*i])&&(S2==couple[2*i+1])){
+			status[i]=2 ; 
+			break ;
+		}
+	}
+
+	// Le couple n'est pas présent
+	couple.push_back(S1) ;
+	couple.push_back(S2) ;
+	status.push_back(1) ;
 }
