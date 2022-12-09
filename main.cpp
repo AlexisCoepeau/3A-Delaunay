@@ -110,11 +110,25 @@ int main(int argc, char* argv[])
 
 
 	//Affichage de la qualité
-	for(int i=0; i<2; i++)
-	{
-		cout << "-------------------------------------------------------" << endl;
-		cout << "Qualité triangle " << i << "=" << Qualite2D(i, mesh_Initial) << endl;
-	}
+	// for(int i=0; i<2; i++)
+	// {
+	// 	cout << "-------------------------------------------------------" << endl;
+	// 	cout << "Qualité triangle " << i << "=" << Qualite2D(i, mesh_Initial) << endl;
+	// }
+
+	// cercle(1, mesh_Initial, 3.0, 2.5);
+  // cout << "Admissibilité = " << Admissibilite(3.0, 2.5, 1, mesh_Initial) << endl;
+  // cercle(1, mesh_Initial, 3.0, 13.0);
+  // cout << "Admissibilité = " << Admissibilite(3.0, 13.0, 1, mesh_Initial) << endl;
+  // cercle(1, mesh_Initial, 3.0, 7.0);
+  // cout << "Admissibilité = " << Admissibilite(3.0, 7.0, 1, mesh_Initial) << endl;
+
+  //Test Delaunay
+
+
+
+
+
 
 	//On est sur le triangle contenant le point initial donc il est forcement noté -1
 	/*for (arretes du triangle contenant le point noté -1)
@@ -316,6 +330,15 @@ int Admissibilite(const double x, const double y, const int numTriangle, const s
 	s2y = mesh.Vertices[(mesh.Triangles[3*numTriangle+1]-1)*2+1];
 	s3x = mesh.Vertices[(mesh.Triangles[3*numTriangle+2]-1)*2];
 	s3y = mesh.Vertices[(mesh.Triangles[3*numTriangle+2]-1)*2+1];
+
+  //Test
+  // s3x = 3.0;
+  // s3y = 2.8;
+  // s2x = 3.72;
+  // s2y = 2.76;
+  // s1x = 0.145;
+  // s1y = 4.314;
+
 	//Propriétés du cercle circonscrit au triangle
 	double a, b, c, d, e, f, g, alpha, xcentre, ycentre, rayon;
 	//Distance entre le point et le centre du cercle circonscrit
@@ -415,15 +438,15 @@ void cercle(int i, struct maillage mesh, double x, double y)
   monFlux1 << "#Triangle" << endl;
   for (int i=0; i<=N; i++)
   {
-    monFlux1 << i*alpha*(s2x - s1x) + s1x << " " << i*alpha*(s2y - s1y) + s1y << endl;
+    monFlux1 << i*coef*(s2x - s1x) + s1x << " " << i*coef*(s2y - s1y) + s1y << endl;
   }
   for (int i=0; i<=N; i++)
   {
-    monFlux1 << i*alpha*(s3x - s1x) + s1x << " " << i*alpha*(s3y - s1y) + s1y << endl;
+    monFlux1 << i*coef*(s3x - s1x) + s1x << " " << i*coef*(s3y - s1y) + s1y << endl;
   }
   for (int i=0; i<=N; i++)
   {
-    monFlux1 << i*alpha*(s3x - s2x) + s2x << " " << i*alpha*(s3y - s2y) + s2y << endl;
+    monFlux1 << i*coef*(s3x - s2x) + s2x << " " << i*coef*(s3y - s2y) + s2y << endl;
   }
 
   monFlux1 << " " << endl;
@@ -444,10 +467,7 @@ void cercle(int i, struct maillage mesh, double x, double y)
   monFlux1 << " " << endl;
   monFlux1 << " " << endl;
   monFlux1 << "#Point" << endl;
-  for (int i=0; i<=N; i++)
-  {
-    monFlux1 << x << " " << y << endl;
-  }
+  monFlux1 << x << " " << y << endl;
 
   monFlux1.close();
 }
