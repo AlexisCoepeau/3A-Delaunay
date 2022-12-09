@@ -88,12 +88,13 @@ struct maillage
 /* PROTOTYPES */
 
 double Distance2D(const double, const double, const double, const double) ;
-double Qualite2D(const int, const struct maillage) ;
-void cercle(int i, struct maillage mesh, double x, double y) ;
+double Qualite2D(const int, const struct maillage &) ;
+void cercle(int, struct maillage &, double, double) ;
 void Chargement(const char*, struct maillage*) ;
+void EcritureSol(const char*, const struct maillage &) ;
 void TriangleToNodes(const struct maillage &, const int, int &, int &, int &);
 void EdgeToNodes(const struct maillage &, const int, int &, int &) ;
-int Admissibilite(const double, const double, const int, const struct maillage) ;
+int Admissibilite(const double, const double, const int, const struct maillage &) ;
 void NodeToEdges(const struct maillage &, const int, int* &, int &) ;
 void NodeToTriangles(const struct maillage &, const int, int* &, int &);
 bool IsPointInTriangle(const struct maillage &, const int, const double, const double) ;
@@ -136,7 +137,7 @@ int main(int argc, char* argv[])
   //Test Delaunay
 
 
-
+	EcritureSol("sortie.sol", mesh_Initial) ;
 
 
 
@@ -189,7 +190,7 @@ double Distance2D(const double x1, const double y1, const double x2, const doubl
  * @par Complexité
  * Temps constant.
 */
-double Qualite2D(const int numTriangle, const struct maillage mesh)
+double Qualite2D(const int numTriangle, const struct maillage &mesh)
 {
 	double Q, aire, s1x, s1y, s2x, s2y, s3x, s3y;
 	s1x = mesh.Vertices[(mesh.Triangles[3*numTriangle]-1)*2];
@@ -326,6 +327,31 @@ void Chargement(const char* fichier, struct maillage *mesh)
 }
 
 /**
+ * @brief Fonction qui enregistre un fichier `.sol` contenant les qualité des triangles. 
+ * @warning Uniquement valable avec une dimension 2.
+*/
+void EcritureSol(const char* fichier, const struct maillage &mesh){
+	ofstream monFlux(fichier);
+	if(monFlux){
+		monFlux << "MeshVersionFormatted" << endl ;
+		monFlux << "2" << endl;
+		monFlux << endl ;
+		monFlux << "Dimension" << endl;
+		monFlux << "2" << endl;
+		monFlux << endl ;
+		monFlux << "SolAtTriangles" << endl ;
+		monFlux << mesh.N_Triangles << endl ; 
+		for(int triangle=0 ; triangle < mesh.N_Triangles ; triangle++){
+			monFlux << Qualite2D(triangle, mesh) << endl ; 
+		}
+	}else{
+        cout<<"Erreur : écriture de fichier .sol" << endl << endl ;
+        cout<<"Vous avez voulu écrire dans le fichier :" << fichier << endl ;
+        exit(EXIT_FAILURE) ;
+    }
+}
+
+/**
  * @brief Fonction qui teste le critère de Delaunay pour un point et un triangle donné.
  *
  * @details La fonction renvoie -1 si le point se situe dans la boule circonscrite du triangle de numéro \f$numTriangle\f$ du maillage. 0 sinon
@@ -337,7 +363,7 @@ void Chargement(const char* fichier, struct maillage *mesh)
  * @par Complexité
  * Temps constant.
 */
-int Admissibilite(const double x, const double y, const int numTriangle, const struct maillage mesh)
+int Admissibilite(const double x, const double y, const int numTriangle, const struct maillage &mesh)
 {
 	//Sommets du triangle numTriangle
 	double s1x, s1y, s2x, s2y, s3x, s3y;
@@ -401,7 +427,7 @@ int Admissibilite(const double x, const double y, const int numTriangle, const s
 
 
 
-void cercle(int i, struct maillage mesh, double x, double y)
+void cercle(int i, struct maillage &mesh, double x, double y)
 {
 	//Sommets du triangle i
 	double s1x, s1y, s2x, s2y, s3x, s3y;
@@ -423,8 +449,8 @@ void cercle(int i, struct maillage mesh, double x, double y)
 	//Propriétés du cercle circonscrit au triangle
 	double a, b, c, d, e, f, g, alpha, xcentre, ycentre, rayon;
 	//Autres
-  int N=100;
-  double theta, coef;
+    int N=100;
+    double theta, coef;
 
 	// a = s2x - s1x;
 	// b = s2y - s1y;
