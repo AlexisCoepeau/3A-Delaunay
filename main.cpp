@@ -838,7 +838,7 @@ void AjoutePoint(const int sommet, const struct maillage & mesh_Initial, struct 
 			// Sommets basé sur ce couple et le sommet à ajouter dans la triangulation.
 			int S1 = couple[2*numcouple] ;
 			int S2 = couple[2*numcouple+1] ;
-			int S3 = sommet ;
+			int S3 = sommet+4 ; // car les sommets de boites englobantes prennent les 4 premiers labels.
 
 
 			if(numRemplacement<nbTriangles-1){
@@ -859,6 +859,8 @@ void AjoutePoint(const int sommet, const struct maillage & mesh_Initial, struct 
 		}
 	}
 	// Le point à été ajouté
+	mesh_Final.Vertices.push_back(sommet_x) ;
+	mesh_Final.Vertices.push_back(sommet_y) ;
 	mesh_Final.N_Vertices++ ;
 }
 
