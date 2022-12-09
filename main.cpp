@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string>
 #include <cmath>
+#include <vector>
 
 /**
  * @mainpage Projet Maillage - Documentation
@@ -30,7 +31,7 @@ struct maillage
 {
 	// Localisation des sommets
 	/** @brief Nombre de sommets du maillage */
-    int N_Vertices ;
+    int N_Vertices=0 ;
 
 	/**
 	 * @brief Tableau des sommets du maillage
@@ -40,10 +41,10 @@ struct maillage
 	 * <tr style="text-align:center"> <td> Vertices : </td> <td> </td> <td> \f$\cdots\f$ </td> <td> \f$x_i\f$ </td> <td> \f$y_i\f$ </td> <td> \f$\cdots\f$ </td> </tr>
 	 * </table>
 	*/
-	double * Vertices;
+	vector<double> Vertices;
 
 	/** @brief Nombre de segments du maillage */
-    int N_Edges ;
+    int N_Edges=0 ;
 	/**
 	 * @brief Tableau des segments du maillage
 	 * @details Le tableau de segments est de taille 2 N_Edges. Il est contient le numéro des sommets pour chaque segment du maillage :
@@ -52,11 +53,11 @@ struct maillage
 	 * <tr style="text-align:center"> <td> Edges : </td> <td> </td> <td> \f$\cdots\f$ </td> <td> \f$S_1\f$ </td> <td> \f$S_2\f$ </td> <td> \f$\cdots\f$ </td> </tr>
 	 * </table>
 	*/
-	int * Edges;
+	vector<int> Edges;
 	// Triangle entre trois sommets numérotés
 
 	/** @brief Nombre de triangles du maillage */
-    int N_Triangles ;
+    int N_Triangles=0 ;
 	/**
 	 * @brief Tableau des triangles du maillage
 	 * @details Le tableau de triangles est de taille 2 N_Triangles. Il est contient le numéro des sommets pour chaque triangles du maillage :
@@ -65,11 +66,11 @@ struct maillage
 	 * <tr style="text-align:center"> <td> Triangles : </td> <td> </td> <td> \f$\cdots\f$ </td> <td> \f$S_1\f$ </td> <td> \f$S_2\f$ </td> <td> \f$S_3\f$ </td> <td> \f$\cdots\f$ </td> </tr>
 	 * </table>
 	*/
-	int * Triangles;
-    int N_Corners ;
-    int * Corners;
-	int N_Ridges ;
-    int * Ridges;
+	vector<int> Triangles;
+    int N_Corners=0 ;
+    vector<int> Corners;
+	int N_Ridges=0 ;
+    vector<int> Ridges;
 };
 
 /* PROTOTYPES */
@@ -122,26 +123,12 @@ int main(int argc, char* argv[])
 			Tant qu'on ne tombe pas sur un triangle ayant deux voisins noté 0 on continue à aller sur ses triangles voisins
 				fonction(sur nouveau triangle)*/
 
-	free(mesh_Initial) ;
 
+	//Libération de la mémoire de maillage automatiquement 
 	return 0;
 }
 
 /* CONTAINS */
-
-/**
- * @brief Fonction `free` surchargée pour la libération mémoire d'un maillage.
- * @details Fonction qui libère la mémoire allouée lors de la génération des chaps d'un maillage.
- * @param mesh Structure de maillage.
- * @sa maillage
- */
-void free(struct maillage mesh){
-	free(mesh.Vertices) ;
-	free(mesh.Edges) ;
-	free(mesh.Triangles) ;
-	free(mesh.Corners) ;
-	free(mesh.Ridges) ;
-}
 
 /**
  * @brief Fonction renvoyant la distance euclidienne en 2 dimensions entre 2 points.
@@ -226,12 +213,15 @@ void Chargement(const char* fichier, struct maillage *mesh)
 			if(ligne=="Vertices")
 			{
 				monFlux >> mesh->N_Vertices; // Nombre de sommets
-				mesh->Vertices = (double*)malloc(sizeof(double)*(2*mesh->N_Vertices));
-
+				double stock ;
+				
+				// Remplissage du tableau de taille 2*N_Vertices
 				for(int i=0; i<mesh->N_Vertices; i++)
 				{
-					monFlux >> mesh->Vertices[2*i];
-					monFlux >> mesh->Vertices[2*i+1];
+					monFlux >> stock ;
+					mesh->Vertices.push_back(stock);   // stocké en 2*i
+					monFlux >> stock ;
+					mesh->Vertices.push_back(stock);  // stocké en 2*i+1
 
 					monFlux >> indice;
 				}
@@ -239,12 +229,15 @@ void Chargement(const char* fichier, struct maillage *mesh)
 			if(ligne=="Edges")
 			{
 				monFlux >> mesh->N_Edges;
-				mesh->Edges = (int*)malloc(sizeof(int)*(2*mesh->N_Edges));
+				int stock ;
 
+				// Remplissage du tableau de taille 2*N_Egdes
 				for(int i=0; i<mesh->N_Edges; i++)
 				{
-					monFlux >> mesh->Edges[2*i];
-					monFlux >> mesh->Edges[2*i+1];
+					monFlux >> stock;
+					mesh->Edges.push_back(stock);   // stocké en 2*i					
+					monFlux >> stock;
+					mesh->Edges.push_back(stock);   // stocké en 2*i+1	
 
 					monFlux >> indice;
 				}
@@ -252,13 +245,17 @@ void Chargement(const char* fichier, struct maillage *mesh)
 			if(ligne=="Triangles")
 			{
 				monFlux >> mesh->N_Triangles;
-				mesh->Triangles = (int*)malloc(sizeof(int)*(3*mesh->N_Triangles));
+				int stock ; 
 
+				// Remplissage du tableau de taille 3*N_Triangles
 				for(int i=0; i<mesh->N_Triangles; i++)
 				{
-					monFlux >> mesh->Triangles[3*i];
-					monFlux >> mesh->Triangles[3*i+1];
-					monFlux >> mesh->Triangles[3*i+2];
+					monFlux >> stock;
+					mesh->Triangles.push_back(stock);   // stocké en 3*i					
+					monFlux >> stock;
+					mesh->Triangles.push_back(stock);   // stocké en 3*i+1	
+					monFlux >> stock ; 
+					mesh->Triangles.push_back(stock);   // stocké en 3*i+2
 
 					monFlux >> indice;
 				}
@@ -266,21 +263,25 @@ void Chargement(const char* fichier, struct maillage *mesh)
 			if(ligne=="Corners")
 			{
 				monFlux >> mesh->N_Corners;
-				mesh->Corners = (int*)malloc(sizeof(int)*(mesh->N_Corners));
+				int stock ; 
 
+				// Remplissage du tableau de taille N_Corners
 				for(int i=0; i<mesh->N_Corners; i++)
 				{
-					monFlux >> mesh->Corners[i];
+					monFlux >> stock;
+					mesh->Corners.push_back(stock);   // stocké en 3*i
 				}
 			}
 			if(ligne=="Ridges")
 			{
 				monFlux >> mesh->N_Ridges ;
-				mesh->Ridges = (int*)malloc(sizeof(int)*(mesh->N_Ridges));
+				int stock ; 
 
+				// Remplissage du tableau de taille N_Ridges
 				for(int i=0; i<mesh->N_Ridges; i++)
 				{
-					monFlux >> mesh->Ridges[i];
+					monFlux >> stock;
+					mesh->Ridges.push_back(stock);   // stocké en 3*i
 				}
 			}
 		}
