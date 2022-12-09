@@ -119,6 +119,23 @@ int main(int argc, char* argv[])
 	// Chargement des données de maillage
 	Chargement(argv[1], &mesh_Initial) ;
 
+  //Création de la boite
+  struct maillage mesh_Final
+  Creation_boite(mesh_boite, mesh_Initial.VerticesXMax, mesh_Initial.VerticesXMin, mesh_Initial.VerticesYMax, mesh_Initial.VerticesYMin)
+
+  //Sortie
+
+
+  // Ajout d'un point
+  // On divise la boite en deux
+  // On ajoute un point i.e 1
+  // On regarde si les triangles respectent Delaunay
+  // Si un triangle ne respecete pas Deulaunay, on stocke ses couples de sommets
+  // On itère sur les triangles existants
+  // Au final si un couple de sommets apparait deux foix, on ne considère pas ce couple pour la reconstruction du triangle
+  // On construit les triangles
+  // On considère le deuxième point
+  //
 
 	//Affichage de la qualité
 	// for(int i=0; i<2; i++)
@@ -126,7 +143,7 @@ int main(int argc, char* argv[])
 	// 	cout << "-------------------------------------------------------" << endl;
 	// 	cout << "Qualité triangle " << i << "=" << Qualite2D(i, mesh_Initial) << endl;
 	// }
-	// 
+	//
 
 	// cercle(1, mesh_Initial, 3.0, 2.5);
   // cout << "Admissibilité = " << Admissibilite(3.0, 2.5, 1, mesh_Initial) << endl;
@@ -150,11 +167,35 @@ int main(int argc, char* argv[])
 				fonction(sur nouveau triangle)*/
 
 
-	//Libération de la mémoire de maillage automatiquement 
+	//Libération de la mémoire de maillage automatiquement
 	return 0;
 }
 
 /* CONTAINS */
+
+void Creation_boite(struct maillage& mesh_boite, double xmax, double xmin, double ymax, double ymin)
+{
+  mesh->Vertices.push_back(xmin-(xmax-xmin)/2.);  // 20x
+  mesh->Vertices.push_back(ymin-(ymax-ymin)/2.);  // 20y
+
+  mesh->Vertices.push_back(xmax+(xmax-xmin)/2.);  // 21x
+  mesh->Vertices.push_back(ymin-(ymax-ymin)/2.);  // 21y
+
+  mesh->Vertices.push_back(xmax+(xmax-xmin)/2.);  // 22x
+  mesh->Vertices.push_back(ymax+(ymax-ymin)/2.);  // 22y
+
+  mesh->Vertices.push_back(xmin-(xmax-xmin)/2.);  // 23x
+  mesh->Vertices.push_back(ymax+(ymax-ymin)/2.);  // 23y
+
+  mesh->Triangles.push_back(1)
+  mesh->Triangles.push_back(2)
+  mesh->Triangles.push_back(4)
+
+  mesh->Triangles.push_back(2)
+  mesh->Triangles.push_back(3)
+  mesh->Triangles.push_back(4)
+}
+
 
 /**
  * @brief Fonction renvoyant la distance euclidienne en 2 dimensions entre 2 points.
@@ -240,7 +281,7 @@ void Chargement(const char* fichier, struct maillage *mesh)
 			{
 				monFlux >> mesh->N_Vertices; // Nombre de sommets
 				double stock ;
-				
+
 				// Remplissage du tableau de taille 2*N_Vertices
 				for(int i=0; i<mesh->N_Vertices; i++)
 				{
@@ -253,7 +294,7 @@ void Chargement(const char* fichier, struct maillage *mesh)
 					//2e coordonnée du sommet
 					monFlux >> stock ;
 					mesh->VerticesYMin=min(mesh->VerticesYMin, stock) ;
-					mesh->VerticesYMax=max(mesh->VerticesYMax, stock) ;					
+					mesh->VerticesYMax=max(mesh->VerticesYMax, stock) ;
 					mesh->Vertices.push_back(stock);  // stocké en 2*i+1
 
 					monFlux >> indice;
@@ -268,9 +309,9 @@ void Chargement(const char* fichier, struct maillage *mesh)
 				for(int i=0; i<mesh->N_Edges; i++)
 				{
 					monFlux >> stock;
-					mesh->Edges.push_back(stock);   // stocké en 2*i					
+					mesh->Edges.push_back(stock);   // stocké en 2*i
 					monFlux >> stock;
-					mesh->Edges.push_back(stock);   // stocké en 2*i+1	
+					mesh->Edges.push_back(stock);   // stocké en 2*i+1
 
 					monFlux >> indice;
 				}
@@ -278,16 +319,16 @@ void Chargement(const char* fichier, struct maillage *mesh)
 			if(ligne=="Triangles")
 			{
 				monFlux >> mesh->N_Triangles;
-				int stock ; 
+				int stock ;
 
 				// Remplissage du tableau de taille 3*N_Triangles
 				for(int i=0; i<mesh->N_Triangles; i++)
 				{
 					monFlux >> stock;
-					mesh->Triangles.push_back(stock);   // stocké en 3*i					
+					mesh->Triangles.push_back(stock);   // stocké en 3*i
 					monFlux >> stock;
-					mesh->Triangles.push_back(stock);   // stocké en 3*i+1	
-					monFlux >> stock ; 
+					mesh->Triangles.push_back(stock);   // stocké en 3*i+1
+					monFlux >> stock ;
 					mesh->Triangles.push_back(stock);   // stocké en 3*i+2
 
 					monFlux >> indice;
@@ -296,7 +337,7 @@ void Chargement(const char* fichier, struct maillage *mesh)
 			if(ligne=="Corners")
 			{
 				monFlux >> mesh->N_Corners;
-				int stock ; 
+				int stock ;
 
 				// Remplissage du tableau de taille N_Corners
 				for(int i=0; i<mesh->N_Corners; i++)
@@ -308,7 +349,7 @@ void Chargement(const char* fichier, struct maillage *mesh)
 			if(ligne=="Ridges")
 			{
 				monFlux >> mesh->N_Ridges ;
-				int stock ; 
+				int stock ;
 
 				// Remplissage du tableau de taille N_Ridges
 				for(int i=0; i<mesh->N_Ridges; i++)
@@ -327,8 +368,127 @@ void Chargement(const char* fichier, struct maillage *mesh)
     }
 }
 
+
 /**
- * @brief Fonction qui enregistre un fichier `.sol` contenant les qualité des triangles. 
+ * @brief Procédure de chargement du maillage
+ * @details
+ * Procédure qui prend un fichier d'entrée au format `.mesh` et qui charge les données dans une structure `maillage`.
+ *
+ * @param[in] fichier Fichier de données au format `.mesh`.
+ * @param[out] mesh Structure maillage.
+ *
+ * @par Complexité
+ * Temps linéaire à la longueur du fichier d'entrée.
+ *
+ * @warning
+ * La procédure arrête le programme avec `EXIT_FAILURE` et affiche un message d'erreur si le fichier ne peut pas être ouvert.
+ * @sa maillage
+ */
+
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!A faire
+void Sortie(const char* fichier, struct maillage *mesh)
+{
+	ofstream monFlux(fichier); // exemple : "${PATH}/meshes/2D/square_disc.mesh"
+	string ligne;
+	int indice;
+	if(monFlux)
+	{
+		while(getline(monFlux,ligne))
+		{
+			if(ligne=="Vertices")
+			{
+				monFlux >> mesh->N_Vertices; // Nombre de sommets
+				double stock ;
+
+				// Remplissage du tableau de taille 2*N_Vertices
+				for(int i=0; i<mesh->N_Vertices; i++)
+				{
+					// 1re coordonnée du sommet
+					monFlux >> stock ;
+					mesh->VerticesXMin=min(mesh->VerticesXMin, stock) ;
+					mesh->VerticesXMax=max(mesh->VerticesXMax, stock) ;
+					mesh->Vertices.push_back(stock);   // stocké en 2*i
+
+					//2e coordonnée du sommet
+					monFlux >> stock ;
+					mesh->VerticesYMin=min(mesh->VerticesYMin, stock) ;
+					mesh->VerticesYMax=max(mesh->VerticesYMax, stock) ;
+					mesh->Vertices.push_back(stock);  // stocké en 2*i+1
+
+					monFlux >> indice;
+				}
+			}
+			if(ligne=="Edges")
+			{
+				monFlux >> mesh->N_Edges;
+				int stock ;
+
+				// Remplissage du tableau de taille 2*N_Egdes
+				for(int i=0; i<mesh->N_Edges; i++)
+				{
+					monFlux >> stock;
+					mesh->Edges.push_back(stock);   // stocké en 2*i
+					monFlux >> stock;
+					mesh->Edges.push_back(stock);   // stocké en 2*i+1
+
+					monFlux >> indice;
+				}
+			}
+			if(ligne=="Triangles")
+			{
+				monFlux >> mesh->N_Triangles;
+				int stock ;
+
+				// Remplissage du tableau de taille 3*N_Triangles
+				for(int i=0; i<mesh->N_Triangles; i++)
+				{
+					monFlux >> stock;
+					mesh->Triangles.push_back(stock);   // stocké en 3*i
+					monFlux >> stock;
+					mesh->Triangles.push_back(stock);   // stocké en 3*i+1
+					monFlux >> stock ;
+					mesh->Triangles.push_back(stock);   // stocké en 3*i+2
+
+					monFlux >> indice;
+				}
+			}
+			if(ligne=="Corners")
+			{
+				monFlux >> mesh->N_Corners;
+				int stock ;
+
+				// Remplissage du tableau de taille N_Corners
+				for(int i=0; i<mesh->N_Corners; i++)
+				{
+					monFlux >> stock;
+					mesh->Corners.push_back(stock);   // stocké en 3*i
+				}
+			}
+			if(ligne=="Ridges")
+			{
+				monFlux >> mesh->N_Ridges ;
+				int stock ;
+
+				// Remplissage du tableau de taille N_Ridges
+				for(int i=0; i<mesh->N_Ridges; i++)
+				{
+					monFlux >> stock;
+					mesh->Ridges.push_back(stock);   // stocké en 3*i
+				}
+			}
+		}
+		monFlux.close();
+	}
+	else{
+        cout<<"Erreur : ouverture de fichier" << endl << endl ;
+        cout<<"Vous avez voulu traiter le fichier :" << fichier << endl ;
+        exit(EXIT_FAILURE) ;
+    }
+}
+
+
+/**
+ * @brief Fonction qui enregistre un fichier `.sol` contenant les qualité des triangles.
  * @warning Uniquement valable avec une dimension 2.
 */
 void EcritureSol(const char* fichier, const struct maillage &mesh){
@@ -341,9 +501,9 @@ void EcritureSol(const char* fichier, const struct maillage &mesh){
 		monFlux << "2" << endl;
 		monFlux << endl ;
 		monFlux << "SolAtTriangles" << endl ;
-		monFlux << mesh.N_Triangles << endl ; 
+		monFlux << mesh.N_Triangles << endl ;
 		for(int triangle=0 ; triangle < mesh.N_Triangles ; triangle++){
-			monFlux << Qualite2D(triangle, mesh) << endl ; 
+			monFlux << Qualite2D(triangle, mesh) << endl ;
 		}
 	}else{
         cout<<"Erreur : écriture de fichier .sol" << endl << endl ;
