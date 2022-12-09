@@ -920,10 +920,15 @@ void AjoutePoint(const int sommet, const struct maillage & mesh_Initial, struct 
 				mesh_Final.Triangles.push_back(S1) ;
 				mesh_Final.Triangles.push_back(S2) ;
 				mesh_Final.Triangles.push_back(S3) ;
+
+				// Ajout de triangles supplémentaires
+				mesh_Final.N_Triangles++ ;
 			}
 			numRemplacement++ ;
 		}
 	}
+	// Le point à été ajouté
+	mesh_Final.N_Vertices++ ;
 }
 
 // test si le couple S1 S2 est dans couple
