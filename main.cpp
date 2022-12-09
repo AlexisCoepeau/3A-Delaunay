@@ -101,7 +101,7 @@ void NodeToTriangles(const struct maillage &, const int, int* &, int &);
 bool IsPointInTriangle(const struct maillage &, const int, const double, const double) ;
 void treatCouple(const int, const int, vector<int> &, vector<int> &) ;
 void Sortie(const char*, struct maillage *) ;
-void Creation_boite(const struct maillage&, const double, const double, const double, const double) ;
+void Creation_boite(struct maillage&, const double, const double, const double, const double) ;
 
 /**
  * @brief Fonction principale
@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
 
 /* CONTAINS */
 
-void Creation_boite(const struct maillage& mesh, const double xmax, const double xmin, const double ymax, const double ymin)
+void Creation_boite(struct maillage & mesh, const double xmax, const double xmin, const double ymax, const double ymin)
 {
   mesh.Vertices.push_back(xmin-(xmax-xmin)/2.);  // 20x
   mesh.Vertices.push_back(ymin-(ymax-ymin)/2.);  // 20y
