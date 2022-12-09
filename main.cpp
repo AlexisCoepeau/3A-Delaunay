@@ -100,7 +100,7 @@ void NodeToEdges(const struct maillage &, const int, int* &, int &) ;
 void NodeToTriangles(const struct maillage &, const int, int* &, int &);
 bool IsPointInTriangle(const struct maillage &, const int, const double, const double) ;
 void treatCouple(const int, const int, vector<int> &, vector<int> &) ;
-void Sortie(const char*, struct maillage *) ;
+void Sortie(const char*, struct maillage &) ;
 void Creation_boite(struct maillage&, const double, const double, const double, const double) ;
 
 /**
@@ -127,17 +127,12 @@ int main(int argc, char* argv[])
     struct maillage mesh_Final ;
     Creation_boite(mesh_Final, mesh_Initial.VerticesXMax, mesh_Initial.VerticesXMin, mesh_Initial.VerticesYMax, mesh_Initial.VerticesYMin) ;
 
-	//Sortie		
-	// Ajout d'un point
-	// On divise la boite en deux
-	// On ajoute un point i.e 1
-	// On regarde si les triangles respectent Delaunay
-	// Si un triangle ne respecte pas Deulaunay, on stocke ses couples de sommets
-	// On itère sur les triangles existants
-	// Au final si un couple de sommets apparaît deux fois, on ne considère pas ce couple pour la reconstruction du triangle
-	// On construit les triangles
-	// On considère le deuxième point
-	//
+    for(int i=0; i<mesh_Initial.N_Vertices; i++)
+    {
+      AjoutePoint(i, mesh_Initial, mesh_Final);
+    }
+
+    Sortie("sortie.mesh", mesh_Final);
 
 	//Affichage de la qualité
 	// for(int i=0; i<2; i++)
@@ -154,23 +149,7 @@ int main(int argc, char* argv[])
 	// cercle(1, mesh_Initial, 3.0, 7.0);
 	// cout << "Admissibilité = " << Admissibilite(3.0, 7.0, 1, mesh_Initial) << endl;
 
-	//Test Delaunay
-
-
-
-
-
-	EcritureSol("sortie.sol", mesh_Initial) ;
-
-
-
-	//On est sur le triangle contenant le point initial donc il est forcement noté -1
-	/*for (arretes du triangle contenant le point noté -1)
-		Tant qu'on ne tombe pas sur un triangle ayant deux voisins noté 0 on continue à aller sur ses triangles voisins
-			fonction(sur nouveau triangle)
-			Tant qu'on ne tombe pas sur un triangle ayant deux voisins noté 0 on continue à aller sur ses triangles voisins
-				fonction(sur nouveau triangle)*/
-
+	EcritureSol("sortie.sol", mesh_Final) ;
 
 	//Libération de la mémoire de maillage automatiquement
 	return 0;
@@ -199,6 +178,9 @@ void Creation_boite(struct maillage & mesh, const double xmax, const double xmin
   mesh.Triangles.push_back(2) ;
   mesh.Triangles.push_back(3) ;
   mesh.Triangles.push_back(4) ;
+
+  mesh.N_Vertices = 4;
+  mesh.N_Triangles = 2;
 }
 
 
@@ -389,7 +371,7 @@ void Chargement(const char* fichier, struct maillage *mesh)
  * La procédure arrête le programme avec `EXIT_FAILURE` et affiche un message d'erreur si le fichier ne peut pas être ouvert.
  * @sa maillage
  */
-void Sortie(const char* fichier, struct maillage *mesh)
+void Sortie(const char* fichier, struct maillage &mesh)
 {
   ofstream monFlux(fichier);
   string ligne;
