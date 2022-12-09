@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
   //Test Delaunay
 
 
-	        
+
 
 
 	EcritureSol("sortie.sol", mesh_Initial) ;
@@ -390,106 +390,55 @@ void Chargement(const char* fichier, struct maillage *mesh)
  * La procédure arrête le programme avec `EXIT_FAILURE` et affiche un message d'erreur si le fichier ne peut pas être ouvert.
  * @sa maillage
  */
-
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!A faire
 void Sortie(const char* fichier, struct maillage *mesh)
 {
-	ofstream monFlux(fichier); // exemple : "${PATH}/meshes/2D/square_disc.mesh"
-	string ligne;
-	int indice;
-	if(monFlux)
-	{
-		while(getline(monFlux,ligne))
-		{
-			if(ligne=="Vertices")
-			{
-				monFlux >> mesh->N_Vertices; // Nombre de sommets
-				double stock ;
+  ofstream monFlux(fichier);
+  string ligne;
+  monFlux << "MeshVersionFormatted 2" << endl;
+  monFlux << " " << endl;
+  monFlux << "Dimension 2" << endl;
+  monFlux << " " << endl;
 
-				// Remplissage du tableau de taille 2*N_Vertices
-				for(int i=0; i<mesh->N_Vertices; i++)
-				{
-					// 1re coordonnée du sommet
-					monFlux >> stock ;
-					mesh->VerticesXMin=min(mesh->VerticesXMin, stock) ;
-					mesh->VerticesXMax=max(mesh->VerticesXMax, stock) ;
-					mesh->Vertices.push_back(stock);   // stocké en 2*i
+  monFlux << "Vertices" << endl;
+  monFlux << mesh.N_Vertices; // Nombre de sommets
+  for(int i=0; i< mesh.N_Vertices; i++)
+  {
+    monFlux << mesh.Vertices[i] << " " << mesh.Vertices[i+1] << endl;
+  }
+  monFlux << " " << endl;
 
-					//2e coordonnée du sommet
-					monFlux >> stock ;
-					mesh->VerticesYMin=min(mesh->VerticesYMin, stock) ;
-					mesh->VerticesYMax=max(mesh->VerticesYMax, stock) ;
-					mesh->Vertices.push_back(stock);  // stocké en 2*i+1
+  monFlux << "Edges" << endl;
+  monFlux << mesh.N_Edges;
+  for(int i=0; i<mesh.N_Edges; i++)
+  {
+    monFlux << mesh.Edges[i] << " " << mesh.Edges[i+1] << endl;
+  }
+  monFlux << " " << endl;
 
-					monFlux >> indice;
-				}
-			}
-			if(ligne=="Edges")
-			{
-				monFlux >> mesh->N_Edges;
-				int stock ;
+  monFlux << "Triangles" << endl;
+  monFlux << mesh.N_Triangles;
+  for(int i=0; i<mesh.N_Triangles; i++)
+  {
+    monFlux <<  mesh.Triangles[i] << mesh.Triangles[i+1] << mesh.Triangles[i+2] << endl;
+  }
+  monFlux << " " << endl;
 
-				// Remplissage du tableau de taille 2*N_Egdes
-				for(int i=0; i<mesh->N_Edges; i++)
-				{
-					monFlux >> stock;
-					mesh->Edges.push_back(stock);   // stocké en 2*i
-					monFlux >> stock;
-					mesh->Edges.push_back(stock);   // stocké en 2*i+1
+  monFlux << "Corners" << endl;
+  monFlux << mesh.N_Corners;
+  for(int i=0; i<mesh.N_Corners; i++)
+  {
+    monFlux <<  mesh.Corners[i] << endl;
+  }
+  monFlux << " " << endl;
 
-					monFlux >> indice;
-				}
-			}
-			if(ligne=="Triangles")
-			{
-				monFlux >> mesh->N_Triangles;
-				int stock ;
+  monFlux << "Ridges" << endl;
+  monFlux << mesh.N_Ridges ;
+  for(int i=0; i<mesh.N_Ridges; i++)
+  {
+    monFlux << mesh.Ridges[i] << endl;   // stocké en 3*i
+  }
+  monFlux.close();
 
-				// Remplissage du tableau de taille 3*N_Triangles
-				for(int i=0; i<mesh->N_Triangles; i++)
-				{
-					monFlux >> stock;
-					mesh->Triangles.push_back(stock);   // stocké en 3*i
-					monFlux >> stock;
-					mesh->Triangles.push_back(stock);   // stocké en 3*i+1
-					monFlux >> stock ;
-					mesh->Triangles.push_back(stock);   // stocké en 3*i+2
-
-					monFlux >> indice;
-				}
-			}
-			if(ligne=="Corners")
-			{
-				monFlux >> mesh->N_Corners;
-				int stock ;
-
-				// Remplissage du tableau de taille N_Corners
-				for(int i=0; i<mesh->N_Corners; i++)
-				{
-					monFlux >> stock;
-					mesh->Corners.push_back(stock);   // stocké en 3*i
-				}
-			}
-			if(ligne=="Ridges")
-			{
-				monFlux >> mesh->N_Ridges ;
-				int stock ;
-
-				// Remplissage du tableau de taille N_Ridges
-				for(int i=0; i<mesh->N_Ridges; i++)
-				{
-					monFlux >> stock;
-					mesh->Ridges.push_back(stock);   // stocké en 3*i
-				}
-			}
-		}
-		monFlux.close();
-	}
-	else{
-        cout<<"Erreur : ouverture de fichier" << endl << endl ;
-        cout<<"Vous avez voulu traiter le fichier :" << fichier << endl ;
-        exit(EXIT_FAILURE) ;
-    }
 }
 
 
@@ -868,12 +817,12 @@ void AjoutePoint(const int sommet, const struct maillage & mesh_Initial, struct 
 
 	// Balayage des triangles pour tester le critère de Delaunay ///////
 	for(int triangle=0 ; triangle < mesh_Final.N_Triangles ; triangle++){
-		
+
 		// Stock si le point sommet du maillage initial est dans la boule du triangle triangle du maillage Final
 		int inBouleTriangle=Admissibilite(sommet_x, sommet_y, triangle, mesh_Final) ;
-		
+
 		if(inBouleTriangle==-1){ // Si le point est dans la boule
-			
+
 			//Sommet du triangle
 			int S1 = mesh_Final.Triangles[3*triangle] ;
 			int S2 = mesh_Final.Triangles[3*triangle+1] ;
@@ -901,10 +850,10 @@ void AjoutePoint(const int sommet, const struct maillage & mesh_Initial, struct 
 
 	// On balaye les couples pour voir ceux qui sont à garder
 	for(int numcouple=0 ; numcouple<couple.size() ; numcouple++){
-		
+
 		// Si on garde ce couple pour un nouveau triangle
 		if(nombreFoisSupp[numcouple]==2){
-			
+
 			// Sommets basé sur ce couple et le sommet à ajouter dans la triangulation.
 			int S1 = couple[2*numcouple] ;
 			int S2 = couple[2*numcouple+1] ;
@@ -913,11 +862,11 @@ void AjoutePoint(const int sommet, const struct maillage & mesh_Initial, struct 
 
 			if(numRemplacement<nbTriangles-1){
 				// On écrase le numRemplacement triangle à supprimer
-				mesh_Final.Triangles[3*numTriangle[numRemplacement]] = S1 ; 
-				mesh_Final.Triangles[3*numTriangle[numRemplacement]+1] = S2 ; 
-				mesh_Final.Triangles[3*numTriangle[numRemplacement]+2] = S3 ; 
+				mesh_Final.Triangles[3*numTriangle[numRemplacement]] = S1 ;
+				mesh_Final.Triangles[3*numTriangle[numRemplacement]+1] = S2 ;
+				mesh_Final.Triangles[3*numTriangle[numRemplacement]+2] = S3 ;
 			}else{
-				// On ajoute les derniers triangles 
+				// On ajoute les derniers triangles
 				mesh_Final.Triangles.push_back(S1) ;
 				mesh_Final.Triangles.push_back(S2) ;
 				mesh_Final.Triangles.push_back(S3) ;
@@ -934,7 +883,7 @@ void treatCouple(const int S1, const int S2, vector<int> &couple, vector<int> & 
 
 	for(int i=0 ; i< taille ; i++){
 		if((S1==couple[2*i])&&(S2==couple[2*i+1])){
-			status[i]=2 ; 
+			status[i]=2 ;
 			break ;
 		}
 	}
