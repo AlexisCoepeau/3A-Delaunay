@@ -830,18 +830,17 @@ void AjoutePoint(const int sommet, const struct maillage & mesh_Initial, struct 
 	int numRemplacement(0) ;
 
 	// On balaye les couples pour voir ceux qui sont à garder
-	for(int numcouple=0 ; numcouple<couple.size() ; numcouple++){
+	for(int numcouple=0 ; numcouple<nombreFoisSupp.size() ; numcouple++){
 
 		// Si on garde ce couple pour un nouveau triangle
-		if(nombreFoisSupp[numcouple]==2){
+		if(nombreFoisSupp[numcouple]==1){
 
 			// Sommets basé sur ce couple et le sommet à ajouter dans la triangulation.
 			int S1 = couple[2*numcouple] ;
 			int S2 = couple[2*numcouple+1] ;
 			int S3 = mesh_Final.N_Vertices+1 ;
 
-
-			if(numRemplacement<nbTriangles-1){
+			if(numRemplacement<nbTriangles){
 				// On écrase le numRemplacement triangle à supprimer
 				mesh_Final.Triangles[3*numTriangle[numRemplacement]] = S1 ;
 				mesh_Final.Triangles[3*numTriangle[numRemplacement]+1] = S2 ;
@@ -868,16 +867,20 @@ void AjoutePoint(const int sommet, const struct maillage & mesh_Initial, struct 
 // S1 < S2
 void treatCouple(const int S1, const int S2, vector<int> &couple, vector<int> & status){
 	int taille=couple.size()/2 ;
+	bool deja = false ;
 
 	for(int i=0 ; i< taille ; i++){
 		if((S1==couple[2*i])&&(S2==couple[2*i+1])){
 			status[i]=2 ;
-			break ;
+			deja = true ;
 		}
 	}
 
-	// Le couple n'est pas présent
-	couple.push_back(S1) ;
-	couple.push_back(S2) ;
-	status.push_back(1) ;
+
+	if(not(deja)){
+		// Le couple n'est pas présent
+		couple.push_back(S1) ;
+		couple.push_back(S2) ;
+		status.push_back(1) ;
+	}
 }
