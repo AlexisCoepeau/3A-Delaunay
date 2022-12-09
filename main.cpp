@@ -102,6 +102,7 @@ bool IsPointInTriangle(const struct maillage &, const int, const double, const d
 void treatCouple(const int, const int, vector<int> &, vector<int> &) ;
 void Sortie(const char*, struct maillage &) ;
 void Creation_boite(struct maillage&, const double, const double, const double, const double) ;
+void swap(const int, const int, struct maillage &) ;
 
 /**
  * @brief Fonction principale
@@ -882,5 +883,57 @@ void treatCouple(const int S1, const int S2, vector<int> &couple, vector<int> & 
 		couple.push_back(S1) ;
 		couple.push_back(S2) ;
 		status.push_back(1) ;
+	}
+}
+
+/**
+ * @brief Procédure qui renverse l'arrête entre 2 triangles s'ils sont voisins
+ * @param[in] t1 Numéro du premier triangle.
+ * @param[in] t2 Numéro du second triangle.
+ * @param[inout] mesh Structure de maillage.
+ * \par Théorie
+ * La fonction renverse l'arrête qui sépare les 2 triangles s'ils sont voisins. S'ils ne le sont pas, rien ne se produit.
+*/
+void swap(const int t1, const int t2, struct maillage &mesh){
+
+	int placeS1iDans2[3] ={-1,-1,-1} ;
+	
+	for(int i=0; i<3 ; i++){
+		for(int j=0 ; j<3 ; j++){
+			if(mesh.Triangles[3*t1+i] == mesh.Triangles[3*t2+j]) // S1i = S2j
+				placeS1iDans2[i]=j ;
+		}
+	}
+
+	// Vérification qu'il n'y a que 1 seul indice -1
+	int compteur(0) ;
+	for(int k=0 ; k<3 ; k++){
+		if(placeS1iDans2[k]==-1)
+			compteur++ ;
+	}
+
+	if(compteur==1){ // Alors on a bien des triangles voisins
+		
+		// Récupération du sommet S1i à replacer
+		int i=0 ;
+		while(placeS1iDans2[i]!=-1){
+			i++ ;
+		}
+
+		// Test si le sommet j est dans le tableau placeS1i dans 2
+		bool SjInTab[3] ;
+		for(int j=0; j<3 ; j++)
+			SjInTab[j]=(placeS1iDans2[0]== j)||(placeS1iDans2[1]== j)||(placeS1iDans2[2]== j) ;
+		
+		// Récupération du sommet j du triangle 2 a replacer
+		int j=0 ;
+		while(SjInTab[j]){
+			j++ ;
+		}
+
+		// On écrase i+1 par j
+		mesh.Triangles[3*t1+((i+1)%3)]= mesh.Triangles[3*t2+j] ;
+		// On écrase l'autre noeud commun dans T2
+		mesh.Triangles[3*t2+(placeS1iDans2[(i+2)%3])] =  mesh.Triangles[3*t1+i] ;
 	}
 }
