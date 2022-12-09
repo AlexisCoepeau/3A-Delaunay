@@ -43,6 +43,18 @@ struct maillage
 	*/
 	vector<double> Vertices;
 
+	/** @brief Position minimale selon x des sommets du maillage*/
+	double VerticesXMin=0.0 ;
+
+	/** @brief Position maximale selon x des sommets du maillage*/
+	double VerticesXMax=0.0 ;
+
+	/** @brief Position minimale selon y des sommets du maillage*/
+	double VerticesYMin=0.0 ;
+
+	/** @brief Position maximale selon y des sommets du maillage*/
+	double VerticesYMax=0.0 ;
+
 	/** @brief Nombre de segments du maillage */
     int N_Edges=0 ;
 	/**
@@ -230,9 +242,16 @@ void Chargement(const char* fichier, struct maillage *mesh)
 				// Remplissage du tableau de taille 2*N_Vertices
 				for(int i=0; i<mesh->N_Vertices; i++)
 				{
+					// 1re coordonnée du sommet
 					monFlux >> stock ;
+					mesh->VerticesXMin=min(mesh->VerticesXMin, stock) ;
+					mesh->VerticesXMax=max(mesh->VerticesXMax, stock) ;
 					mesh->Vertices.push_back(stock);   // stocké en 2*i
+
+					//2e coordonnée du sommet
 					monFlux >> stock ;
+					mesh->VerticesYMin=min(mesh->VerticesYMin, stock) ;
+					mesh->VerticesYMax=max(mesh->VerticesYMax, stock) ;					
 					mesh->Vertices.push_back(stock);  // stocké en 2*i+1
 
 					monFlux >> indice;
