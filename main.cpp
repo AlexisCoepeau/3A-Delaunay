@@ -400,7 +400,7 @@ void Sortie(const char* fichier, struct maillage &mesh)
   monFlux << mesh.N_Triangles<< endl;
   for(int i=0; i<mesh.N_Triangles; i++)
   {
-    monFlux <<  mesh.Triangles[3*i] << mesh.Triangles[3*i+1] << mesh.Triangles[3*i+2] << endl;
+    monFlux <<  mesh.Triangles[3*i] << " " << mesh.Triangles[3*i+1] << " " << mesh.Triangles[3*i+2] << endl;
   }
   monFlux << " " << endl;
 
