@@ -381,31 +381,31 @@ void Sortie(const char* fichier, struct maillage &mesh)
   monFlux << " " << endl;
 
   monFlux << "Vertices" << endl;
-  monFlux << mesh.N_Vertices; // Nombre de sommets
+  monFlux << mesh.N_Vertices << endl; // Nombre de sommets
   for(int i=0; i< mesh.N_Vertices; i++)
   {
-    monFlux << mesh.Vertices[i] << " " << mesh.Vertices[i+1] << endl;
+    monFlux << mesh.Vertices[2*i] << " " << mesh.Vertices[2*i+1] << endl;
   }
   monFlux << " " << endl;
 
   monFlux << "Edges" << endl;
-  monFlux << mesh.N_Edges;
+  monFlux << mesh.N_Edges<< endl;
   for(int i=0; i<mesh.N_Edges; i++)
   {
-    monFlux << mesh.Edges[i] << " " << mesh.Edges[i+1] << endl;
+    monFlux << mesh.Edges[2*i] << " " << mesh.Edges[2*i+1] << endl;
   }
   monFlux << " " << endl;
 
   monFlux << "Triangles" << endl;
-  monFlux << mesh.N_Triangles;
+  monFlux << mesh.N_Triangles<< endl;
   for(int i=0; i<mesh.N_Triangles; i++)
   {
-    monFlux <<  mesh.Triangles[i] << mesh.Triangles[i+1] << mesh.Triangles[i+2] << endl;
+    monFlux <<  mesh.Triangles[3*i] << mesh.Triangles[3*i+1] << mesh.Triangles[3*i+2] << endl;
   }
   monFlux << " " << endl;
 
   monFlux << "Corners" << endl;
-  monFlux << mesh.N_Corners;
+  monFlux << mesh.N_Corners<< endl;
   for(int i=0; i<mesh.N_Corners; i++)
   {
     monFlux <<  mesh.Corners[i] << endl;
@@ -413,7 +413,7 @@ void Sortie(const char* fichier, struct maillage &mesh)
   monFlux << " " << endl;
 
   monFlux << "Ridges" << endl;
-  monFlux << mesh.N_Ridges ;
+  monFlux << mesh.N_Ridges<< endl ;
   for(int i=0; i<mesh.N_Ridges; i++)
   {
     monFlux << mesh.Ridges[i] << endl;   // stocké en 3*i
