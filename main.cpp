@@ -95,12 +95,13 @@ void Chargement(const char*, struct maillage*) ;
 void EcritureSol(const char*, const struct maillage &) ;
 void TriangleToNodes(const struct maillage &, const int, int &, int &, int &);
 void EdgeToNodes(const struct maillage &, const int, int &, int &) ;
-int Admissibilite(const double, const double, const int, const struct maillage &) ;
+int  Admissibilite(const double, const double, const int, const struct maillage &) ;
 void NodeToEdges(const struct maillage &, const int, int* &, int &) ;
 void NodeToTriangles(const struct maillage &, const int, int* &, int &);
 bool IsPointInTriangle(const struct maillage &, const int, const double, const double) ;
 void treatCouple(const int, const int, vector<int> &, vector<int> &) ;
-
+void Sortie(const char*, struct maillage *) ;
+void Creation_boite(struct maillage&, const double, const double, const double, const double) ;
 
 /**
  * @brief Fonction principale
@@ -122,23 +123,21 @@ int main(int argc, char* argv[])
 	// Chargement des données de maillage
 	Chargement(argv[1], &mesh_Initial) ;
 
-  //Création de la boite
-  struct maillage mesh_Final
-  Creation_boite(mesh_boite, mesh_Initial.VerticesXMax, mesh_Initial.VerticesXMin, mesh_Initial.VerticesYMax, mesh_Initial.VerticesYMin)
+    //Création de la boite
+    struct maillage mesh_Final ;
+    Creation_boite(mesh_Final, mesh_Initial.VerticesXMax, mesh_Initial.VerticesXMin, mesh_Initial.VerticesYMax, mesh_Initial.VerticesYMin) ;
 
-  //Sortie
-
-
-  // Ajout d'un point
-  // On divise la boite en deux
-  // On ajoute un point i.e 1
-  // On regarde si les triangles respectent Delaunay
-  // Si un triangle ne respecete pas Deulaunay, on stocke ses couples de sommets
-  // On itère sur les triangles existants
-  // Au final si un couple de sommets apparait deux foix, on ne considère pas ce couple pour la reconstruction du triangle
-  // On construit les triangles
-  // On considère le deuxième point
-  //
+	//Sortie		
+	// Ajout d'un point
+	// On divise la boite en deux
+	// On ajoute un point i.e 1
+	// On regarde si les triangles respectent Delaunay
+	// Si un triangle ne respecte pas Deulaunay, on stocke ses couples de sommets
+	// On itère sur les triangles existants
+	// Au final si un couple de sommets apparaît deux fois, on ne considère pas ce couple pour la reconstruction du triangle
+	// On construit les triangles
+	// On considère le deuxième point
+	//
 
 	//Affichage de la qualité
 	// for(int i=0; i<2; i++)
@@ -149,13 +148,13 @@ int main(int argc, char* argv[])
 	//
 
 	// cercle(1, mesh_Initial, 3.0, 2.5);
-  // cout << "Admissibilité = " << Admissibilite(3.0, 2.5, 1, mesh_Initial) << endl;
-  // cercle(1, mesh_Initial, 3.0, 13.0);
-  // cout << "Admissibilité = " << Admissibilite(3.0, 13.0, 1, mesh_Initial) << endl;
-  // cercle(1, mesh_Initial, 3.0, 7.0);
-  // cout << "Admissibilité = " << Admissibilite(3.0, 7.0, 1, mesh_Initial) << endl;
+	// cout << "Admissibilité = " << Admissibilite(3.0, 2.5, 1, mesh_Initial) << endl;
+	// cercle(1, mesh_Initial, 3.0, 13.0);
+	// cout << "Admissibilité = " << Admissibilite(3.0, 13.0, 1, mesh_Initial) << endl;
+	// cercle(1, mesh_Initial, 3.0, 7.0);
+	// cout << "Admissibilité = " << Admissibilite(3.0, 7.0, 1, mesh_Initial) << endl;
 
-  //Test Delaunay
+	//Test Delaunay
 
 
 
@@ -179,27 +178,27 @@ int main(int argc, char* argv[])
 
 /* CONTAINS */
 
-void Creation_boite(struct maillage& mesh_boite, double xmax, double xmin, double ymax, double ymin)
+void Creation_boite(struct maillage & mesh, const double xmax, const double xmin, const double ymax, const double ymin)
 {
-  mesh->Vertices.push_back(xmin-(xmax-xmin)/2.);  // 20x
-  mesh->Vertices.push_back(ymin-(ymax-ymin)/2.);  // 20y
+  mesh.Vertices.push_back(xmin-(xmax-xmin)/2.);  // 20x
+  mesh.Vertices.push_back(ymin-(ymax-ymin)/2.);  // 20y
 
-  mesh->Vertices.push_back(xmax+(xmax-xmin)/2.);  // 21x
-  mesh->Vertices.push_back(ymin-(ymax-ymin)/2.);  // 21y
+  mesh.Vertices.push_back(xmax+(xmax-xmin)/2.);  // 21x
+  mesh.Vertices.push_back(ymin-(ymax-ymin)/2.);  // 21y
 
-  mesh->Vertices.push_back(xmax+(xmax-xmin)/2.);  // 22x
-  mesh->Vertices.push_back(ymax+(ymax-ymin)/2.);  // 22y
+  mesh.Vertices.push_back(xmax+(xmax-xmin)/2.);  // 22x
+  mesh.Vertices.push_back(ymax+(ymax-ymin)/2.);  // 22y
 
-  mesh->Vertices.push_back(xmin-(xmax-xmin)/2.);  // 23x
-  mesh->Vertices.push_back(ymax+(ymax-ymin)/2.);  // 23y
+  mesh.Vertices.push_back(xmin-(xmax-xmin)/2.);  // 23x
+  mesh.Vertices.push_back(ymax+(ymax-ymin)/2.);  // 23y
 
-  mesh->Triangles.push_back(1)
-  mesh->Triangles.push_back(2)
-  mesh->Triangles.push_back(4)
+  mesh.Triangles.push_back(1) ;
+  mesh.Triangles.push_back(2) ;
+  mesh.Triangles.push_back(4) ;
 
-  mesh->Triangles.push_back(2)
-  mesh->Triangles.push_back(3)
-  mesh->Triangles.push_back(4)
+  mesh.Triangles.push_back(2) ;
+  mesh.Triangles.push_back(3) ;
+  mesh.Triangles.push_back(4) ;
 }
 
 
