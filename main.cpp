@@ -103,6 +103,8 @@ void treatCouple(const int, const int, vector<int> &, vector<int> &) ;
 void Sortie(const char*, struct maillage &) ;
 void Creation_boite(struct maillage&, const double, const double, const double, const double) ;
 void swap(const int, const int, struct maillage &) ;
+void ForceBound(struct maillage &) ;
+bool triangleCrossEdges(const int, const int, const int, const struct maillage &) ;
 
 /**
  * @brief Fonction principale
@@ -128,10 +130,20 @@ int main(int argc, char* argv[])
     struct maillage mesh_Final ;
     Creation_boite(mesh_Final, mesh_Initial.VerticesXMax, mesh_Initial.VerticesXMin, mesh_Initial.VerticesYMax, mesh_Initial.VerticesYMin) ;
 
-    for(int i=0; i<mesh_Initial.N_Vertices; i++)
+	//Ajout des Edges 
+	mesh_Final.N_Edges=mesh_Initial.N_Edges ;
+	mesh_Final.Edges.resize(2*mesh_Final.N_Edges) ;
+
+	for(int i=0 ; i< 2*mesh_Initial.N_Edges ; i++)
+		mesh_Final.Edges[i]=mesh_Initial.Edges[i]+4 ;
+	
+
+    for(int i=1; i<mesh_Initial.N_Vertices+1; i++)
     {
       AjoutePoint(i, mesh_Initial, mesh_Final);
     }
+
+	ForceBound(mesh_Final) ;
 
     Sortie("sortie.mesh", mesh_Final);
 
@@ -615,6 +627,118 @@ void cercle(int i, struct maillage &mesh, double x, double y)
 
 
 /**
+ * @brief Fonction qui renvoie vrai sur un triangle donné coupe le segment entre 2 sommets donné.
+ * @param[in] triangle Numéro du triangle à considérer.
+ * @param[in] sommet Numéro du premier sommet <b> qui appartient au triangle </b>.
+ * @param[in] sommet_opp Numéro du sommet opposé par le segment à sommet numéro `sommet.
+ * @param[in] mesh Structure de maillage.
+*/
+bool triangleCrossEdges(const int triangle, const int sommet, const int sommet_opp, const struct maillage &mesh){
+	
+	int S1 = mesh.Triangles[3*triangle] ;
+	int S2 = mesh.Triangles[3*triangle+1] ;
+	int S3 = mesh.Triangles[3*triangle+2] ;
+
+	// Bascule sur S1 S2 
+	if(sommet==S1){
+		S1=S3 ;
+	}else if(sommet==S2){
+		S2=S3 ;
+	}
+
+	// Positions de S1 et S2
+	double S1x = mesh.Vertices[2*(S1-1)] ;
+	double S1y = mesh.Vertices[2*(S1-1)+1] ;
+	double S2x = mesh.Vertices[2*(S2-1)] ;
+	double S2y = mesh.Vertices[2*(S2-1)+1] ;
+
+	// Equation de la droite S1 S2 : ax+by=c
+	double a = -(S2y-S1y) ;
+	double b =  (S2x-S1x) ;
+	double c = a*S1x+b*S1y ;
+
+	// Position de sommet et sommet_opp
+	double sommetx = mesh.Vertices[2*(sommet-1)] ;
+	double sommety = mesh.Vertices[2*(sommet-1)+1] ;
+	double sommet_oppx = mesh.Vertices[2*(sommet_opp-1)] ;
+	double sommet_oppy = mesh.Vertices[2*(sommet_opp-1)+1] ;
+
+	// Equation de la droite portée par le edges : dx+ey=f
+	double d = -(sommet_oppy-sommety) ;
+	double e =  (sommet_oppx-sommetx) ;
+	double f = d*sommetx+e*sommety ;
+
+	/* Système à résoudre pour trouver le point d'intersection 
+	 * entre les 2 droites */ 
+
+	double x = 1.0/(a*e-d*b) *(e*c-b*f) ;
+	double y = 1.0/(a*e-d*b) *(-d*c+a*f) ;
+
+	// Calcul du produit scalaire entre S1S2 et S2 intersec / ||S1S2||
+	double PS1 = ((S2x-S1x)*(x-S1x)+(S2y-S1y)*(y-S1y))/((S2x-S1x)*(S2x-S1x)+(S2y-S1y)*(S2y-S1y)) ;
+	// Calcul du produit scalaire entre edge et sommet-intersec / ||edge||
+	double PS2 = ((sommet_oppx-sommetx)*(x-sommetx)+(sommet_oppy-sommety)*(y-sommety))/((sommet_oppx-sommetx)*(sommet_oppx-sommetx)+(sommet_oppy-sommety)*(sommet_oppy-sommety)) ;
+
+	// Il faut que le point soit entre S1 et S2 mais également entre les 2 points de edge.
+	if((PS1>0.0)&&(PS1<1.0)&&(PS2>0.0)&&(PS2<1.0))
+		return true ;
+	else 
+		return false ;
+}
+
+/**
+ * @brief Fonction qui modifie le maillage pour le forcer à contenir la frontière du domaine.
+ * @param[inout] mesh Structure de maillage.
+*/
+void ForceBound(struct maillage &mesh){
+
+	for(int edge=1 ; edge < mesh.N_Edges+1 ; edge++){
+		int S1 = mesh.Edges[2*(edge-1)] ;
+		int S2 = mesh.Edges[2*(edge-1)+1] ;
+
+		// Tableau contenant S1
+		int NTrianglesS1 ; 
+		int *tabTrianglesS1 ;
+		NodeToTriangles(mesh, S1, tabTrianglesS1, NTrianglesS1) ;
+
+		// Vérification : "Existe-t-il un triangle qui contient S2 ?"
+		bool dejaInclu = false ; 
+		int i = 0 ;
+		int numTriangle ;
+		while((not(dejaInclu)) && (i<NTrianglesS1)){
+			numTriangle = tabTrianglesS1[i] ;
+			dejaInclu = (S2==mesh.Triangles[3*numTriangle])||(S2==mesh.Triangles[3*numTriangle+1])||(S2==mesh.Triangles[3*numTriangle+2]) ;
+			i++ ;
+		}
+
+
+		if(not(dejaInclu)){
+			bool isGoodTriangle=false ;
+			i=-1 ;
+			while(not(isGoodTriangle)){
+				i++ ;
+				isGoodTriangle = triangleCrossEdges(tabTrianglesS1[i], S1, S2, mesh) ;
+			}
+
+			// Tableau contenant S2
+			int NTrianglesS2 ; 
+			int *tabTrianglesS2 ;
+			NodeToTriangles(mesh, S2, tabTrianglesS2, NTrianglesS2) ;
+
+			isGoodTriangle=false ;
+			int j=-1 ;
+			while(not(isGoodTriangle)){
+				j++ ;
+				isGoodTriangle = triangleCrossEdges(tabTrianglesS2[j], S2, S1, mesh) ;
+			}
+
+			// Swap final
+			swap(tabTrianglesS1[i], tabTrianglesS2[j], mesh) ;
+		}
+	}
+}
+
+/**
  * @brief Procédure qui renvoie la liste des sommets d'un triangle donné.
  *
  * @param[in] mesh Structure de maillage.
@@ -753,12 +877,12 @@ bool IsPointInTriangle(const struct maillage &mesh, const int numTriangle, const
 	TriangleToNodes(mesh, numTriangle, S1, S2, S3) ;
 
 	double S1x, S1y, S2x, S2y, S3x, S3y ;
-	S1x = mesh.Vertices[2*S1];
-	S1y = mesh.Vertices[2*S1+1];
-	S2x = mesh.Vertices[2*S2];
-	S2y = mesh.Vertices[2*S2+1];
-	S3x = mesh.Vertices[2*S3];
-	S3y = mesh.Vertices[2*S3+1];
+	S1x = mesh.Vertices[2*(S1-1)];
+	S1y = mesh.Vertices[2*(S1-1)+1];
+	S2x = mesh.Vertices[2*(S2-1)];
+	S2y = mesh.Vertices[2*(S2-1)+1];
+	S3x = mesh.Vertices[2*(S3-1)];
+	S3y = mesh.Vertices[2*(S3-1)+1];
 
 	//  double de l'aire signée du triangle (S1, S2, S3)
 	double Daire = ((S2x-S1x)*(S3y-S1y)-(S3x-S1x)*(S2y-S1y));
@@ -794,8 +918,8 @@ void AjoutePoint(const int sommet, const struct maillage & mesh_Initial, struct 
 	vector<int> numTriangle ;    // Liste des triangles à supprimer
 	int nbTriangles(0) ;         // Nombre de triangles à supprimer
 
-	double sommet_x = mesh_Initial.Vertices[2*sommet] ;
-	double sommet_y = mesh_Initial.Vertices[2*sommet+1] ;
+	double sommet_x = mesh_Initial.Vertices[2*(sommet-1)] ;
+	double sommet_y = mesh_Initial.Vertices[2*(sommet-1)+1] ;
 
 	// Balayage des triangles pour tester le critère de Delaunay ///////
 	for(int triangle=0 ; triangle < mesh_Final.N_Triangles ; triangle++){
@@ -864,8 +988,13 @@ void AjoutePoint(const int sommet, const struct maillage & mesh_Initial, struct 
 	mesh_Final.N_Vertices++ ;
 }
 
-// test si le couple S1 S2 est dans couple
-// S1 < S2
+/**
+ * @brief Fonction qui ajoute au vecteur couple S1 et S2 s'il n'est pas présent. Augmente de 1 status sinon.
+ * @param[in] S1 Premier numéro de sommet.
+ * @param[in] S1 Second numéro de sommet.
+ * @param[in] couple Vecteur des couples.
+ * @param[in] status Vecteur donnant un status 1 si le couple est unique ou 2 s'il est déjà présent dans le vecteur couple.
+*/ 
 void treatCouple(const int S1, const int S2, vector<int> &couple, vector<int> & status){
 	int taille=couple.size()/2 ;
 	bool deja = false ;
