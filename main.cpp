@@ -109,6 +109,7 @@ void ForceBound(struct maillage &) ;
 bool triangleCrossEdges(const int, const int, const int, const struct maillage &) ;
 void Deletebox(struct maillage &, vector<int> &, int* &);
 void Delete(struct maillage &, int, vector<int> &, int* &, int);
+void Supprime_Triangle(struct maillage &, int, int*, int*) ;
 
 /**
 * @brief Fonction principale
@@ -149,21 +150,25 @@ int main(int argc, char* argv[])
 
   ForceBound(mesh_Final) ;
 
-  cout << "iti" << endl ;
 
-  vector<int> tabdejavu ;
-  int* triangles_a_supprimer ;
+  // vector<int> tabdejavu ;
+  // int* triangles_a_supprimer ;
 
-  Deletebox(mesh_Final, tabdejavu, triangles_a_supprimer) ;
+  // Deletebox(mesh_Final, tabdejavu, triangles_a_supprimer) ;
 
-  cout << "itie" << endl ;
+  int dejaTreated[mesh_Final.N_Triangles] ;
+  int mort[mesh_Final.N_Triangles] ;
 
-
-  for(int triangle=0 ; triangle < mesh_Final.N_Triangles ; triangle++){
-    cout << "Triangle " << triangle << " a supprimer ? : " << triangles_a_supprimer[triangle] << endl ;
+  for(int j=0 ; j <mesh_Final.N_Triangles ; j++){
+    mort[j]=0 ;
+    dejaTreated[j]=0 ;
   }
 
-  cout << "itiee" << endl ;
+  Supprime_Triangle(mesh_Final, 0, dejaTreated, mort) ;
+
+  // for(int triangle=0 ; triangle < mesh_Final.N_Triangles ; triangle++){
+  //   cout << "Triangle " << triangle << " a supprimer ? : " << mort[triangle] << endl ;
+  // }
 
 
   Sortie("sortie.mesh", mesh_Final);
@@ -784,6 +789,7 @@ void Deletebox(struct maillage &mesh, vector<int> &tabdejavu, int* &triangles_a_
 
 void Delete(struct maillage &mesh, int triangle, vector<int> &tabdejavu, int* &triangles_a_supprimer, int cond_arret)
 {
+  cout << "condition : " << cond_arret << endl ;
   if (cond_arret==1)
   {
     //Calcule des voisins du triangle
@@ -794,6 +800,7 @@ void Delete(struct maillage &mesh, int triangle, vector<int> &tabdejavu, int* &t
     int numTriangle ;
     int S1, S2, S3;
     int S1edge, S2edge;
+    cout << "Ntri : " << NTriangles << endl ;
     for (int i=0; i<NTriangles; i++)
     {
       numTriangle = tabNeighbours[i];
@@ -1004,7 +1011,7 @@ void Triangle_to_its_neighbours_sans_deja_vu(const struct maillage &mesh, const 
   // Variables
   int S1, S2, S3                ; // Sommets du triangle
   int S1tilde, S2tilde, S3tilde ; // Sommets du triangle candidat
-  NTriangles=0              ; // Nombre de triangles voisins effectifs
+  NTriangles=0                  ; // Nombre de triangles voisins effectifs
   int* Triangles_neighbours_Max ;
   int dejavu                ;
 
@@ -1029,24 +1036,50 @@ void Triangle_to_its_neighbours_sans_deja_vu(const struct maillage &mesh, const 
 
     if ((triangle != numTriangle)&&(dejavu!=1))
     {
-      if(((S1tilde==S1)||(S1tilde==S2)||(S1tilde==S3))&&((S2tilde==S1)||(S2tilde==S2)||(S2tilde==S3)))
-      {
+
+      int placeS1iDans2[3] ={-1,-1,-1} ;
+
+      for(int i=0; i<3 ; i++){
+        for(int j=0 ; j<3 ; j++){
+          if(mesh.Triangles[3*numTriangle+i] == mesh.Triangles[3*triangle+j]) // S1i = S2j
+          placeS1iDans2[i]=j ;
+        }
+      }
+
+      // Vérification qu'il n'y a que 1 seul indice -1
+      int compteur(0) ;
+      for(int k=0 ; k<3 ; k++){
+        if(placeS1iDans2[k]==-1)
+        compteur++ ;
+      }
+
+      if(compteur==1){ // Alors on a bien des triangles voisins
         Triangles_neighbours_Max[NTriangles] = triangle ;
         tabdejavu.push_back(triangle);
         NTriangles++ ;
       }
-      else if(((S1tilde==S1)||(S1tilde==S2)||(S1tilde==S3))&&((S3tilde==S1)||(S3tilde==S2)||(S3tilde==S3)))
-      {
-        Triangles_neighbours_Max[NTriangles] = triangle ;
-        tabdejavu.push_back(triangle);
-        NTriangles++ ;
-      }
-      else if(((S2tilde==S1)||(S2tilde==S2)||(S2tilde==S3))&&((S3tilde==S1)||(S3tilde==S2)||(S3tilde==S3)))
-      {
-        Triangles_neighbours_Max[NTriangles] = triangle ;
-        tabdejavu.push_back(triangle);
-        NTriangles++ ;
-      }
+
+
+
+
+      // if(((S1tilde==S1)||(S1tilde==S2)||(S1tilde==S3))&&((S2tilde==S1)||(S2tilde==S2)||(S2tilde==S3)))
+      // {
+      //   Triangles_neighbours_Max[NTriangles] = triangle ;
+      //   tabdejavu.push_back(triangle);
+      //   NTriangles++ ;
+      // }
+      // else if(((S1tilde==S1)||(S1tilde==S2)||(S1tilde==S3))&&((S3tilde==S1)||(S3tilde==S2)||(S3tilde==S3)))
+      // {
+      //   Triangles_neighbours_Max[NTriangles] = triangle ;
+      //   tabdejavu.push_back(triangle);
+      //   NTriangles++ ;
+      // }
+      // else if(((S2tilde==S1)||(S2tilde==S2)||(S2tilde==S3))&&((S3tilde==S1)||(S3tilde==S2)||(S3tilde==S3)))
+      // {
+      //   Triangles_neighbours_Max[NTriangles] = triangle ;
+      //   tabdejavu.push_back(triangle);
+      //   NTriangles++ ;
+      // }
     }
   }
 
@@ -1271,5 +1304,78 @@ void swap(const int t1, const int t2, struct maillage &mesh){
     mesh.Triangles[3*t1+((i+1)%3)]= mesh.Triangles[3*t2+j] ;
     // On écrase l'autre noeud commun dans T2
     mesh.Triangles[3*t2+(placeS1iDans2[(i+2)%3])] =  mesh.Triangles[3*t1+i] ;
+  }
+}
+
+
+
+void Supprime_Triangle(struct maillage &mesh, int triangle, int* dejaTreated, int* mort){
+
+  mort[triangle]=1 ;
+  dejaTreated[triangle]=1 ; 
+
+  int voisin[3]={-1,-1,-1} ;
+  int position ;
+
+  int S1 = mesh.Triangles[3*triangle] ;
+  int S2 = mesh.Triangles[3*triangle+1] ;
+  int S3 = mesh.Triangles[3*triangle+2] ;
+
+  // Récupération des voisins ///////////////////////////
+  for(int triVoisin=0 ; triVoisin < mesh.N_Triangles ; triVoisin++){
+    int placeS1iDans2[3] ={-1,-1,-1} ;
+
+      for(int i=0; i<3 ; i++){
+        for(int j=0 ; j<3 ; j++){
+          if(mesh.Triangles[3*triangle+i] == mesh.Triangles[3*triVoisin+j]) // S1i = S2j
+          placeS1iDans2[i]=j ;
+        }
+      }
+      // Vérification qu'il n'y a que 1 seul indice -1
+      int compteur(0) ;
+      for(int k=0 ; k<3 ; k++){
+        if(placeS1iDans2[k]==-1){
+          compteur++ ;
+          position=k ;
+        }
+      }
+
+      if(compteur==1){ // Alors on a bien un triangle voisin opposé au sommet k
+        voisin[position]=triVoisin ;
+      }
+  }
+
+  // Les voisins sont stockés dans voisin[3] //////////////
+
+  // Test quels bord du triangle sont des egdes 
+  bool bordIsEdge[3]={false, false, false} ;
+
+  for(int edge=0 ; edge < mesh.N_Edges ; edge++){
+    int S1edge = mesh.Edges[2*edge] ;
+    int S2edge = mesh.Edges[2*edge+1] ;
+
+    // Test S2 et S3 sur l'edge
+    if(((S2==S1edge)||(S2==S2edge))&&((S3==S1edge)||(S3==S2edge))){ // S2S3 est le edge
+      bordIsEdge[0]=true ;
+    }
+
+    // Test S1 et S3 sur l'edge
+    if(((S1==S1edge)||(S1==S2edge))&&((S3==S1edge)||(S3==S2edge))){ // S2S3 est le edge
+      bordIsEdge[1]=true ;
+    }
+
+    // Test S1 et S2 sur l'edge
+    if(((S1==S1edge)||(S1==S2edge))&&((S2==S1edge)||(S2==S2edge))){ // S2S3 est le edge
+      bordIsEdge[2]=true ;
+    }
+  }
+
+  // Lancement de la mort des voisins par les cotés qui ne sont pas edges
+  for(int trivoisin=0 ; trivoisin<3 ; trivoisin++){
+    // SI le bord n'est pas une frontière du domaine 
+    if(!voisin[trivoisin]!=-1){
+      if((!bordIsEdge[trivoisin])&&(dejaTreated[voisin[trivoisin]]==0))
+        Supprime_Triangle(mesh, voisin[trivoisin], dejaTreated, mort) ;
+    }
   }
 }
