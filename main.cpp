@@ -1387,47 +1387,32 @@ void Nettoyage(struct maillage &mesh, int* mort){
   mesh.N_Vertices-=4 ;
 
   // Nettoyage du tableau des triangles 
-  int posLastMort(-1) ;
-  int tailleFinale(0) ; 
+  int oldtriangle(0) ;
+  int nvtriangle(0) ;
 
-  int isMort=0 ;
+  while(oldtriangle < mesh.N_Triangles){
 
+    while((mort[oldtriangle]==1)&&(oldtriangle < mesh.N_Triangles)){
+      oldtriangle++ ;
+    }
 
+    if(oldtriangle < mesh.N_Triangles){
+      mesh.Triangles[3*nvtriangle]=mesh.Triangles[3*oldtriangle] -4;
+      mesh.Triangles[3*nvtriangle+1]=mesh.Triangles[3*oldtriangle+1] -4;
+      mesh.Triangles[3*nvtriangle+2]=mesh.Triangles[3*oldtriangle+2] -4;
 
-  for(int triangle=mesh.N_Triangles ; triangle>=0 ; triangle--){
-    
-    // Le triangle est à copier à l'endroit du dernier mort identifié
-    if(mort[triangle]==0){
-      // Recherche du premier mort pas remplacé
-      while((isMort==0)&&(posLastMort<mesh.N_Triangles)){
-        posLastMort++ ;
-        isMort=mort[posLastMort] ;
-      }
+      mort[nvtriangle]=0 ;
 
-      // Copie s'il y a un mort avant 
-      if((posLastMort<triangle)&&(posLastMort<mesh.N_Triangles)){
-        //copie 
-        mesh.Triangles[3*posLastMort]=mesh.Triangles[3*triangle] ;
-        mesh.Triangles[3*posLastMort+1]=mesh.Triangles[3*triangle+1] ;
-        mesh.Triangles[3*posLastMort+2]=mesh.Triangles[3*triangle+2] ;
-
-        //Pour relancer le while après
-        isMort=0 ;
-      }
-      
-      tailleFinale++ ;
+      nvtriangle++ ;
+      oldtriangle++ ;
     }
   }
-  mesh.N_Triangles=tailleFinale ; 
+
+  // Redimensionnement du tableau des triangles
+  mesh.N_Triangles=nvtriangle; 
   mesh.Triangles.resize(mesh.N_Triangles) ;
 
-
-  // Boucle de renumérotation 
-  for(int triangle=0 ; triangle< mesh.N_Triangles ; triangle++){
-    mesh.Triangles[3*triangle]-=4 ;
-    mesh.Triangles[3*triangle+1]-=4 ;
-    mesh.Triangles[3*triangle+2]-=4 ;
-  }
+  // Renumérotation du tableaux des frontières
   for(int edge=0 ; edge< mesh.N_Edges ; edge++){
     mesh.Edges[2*edge]-=4 ;
     mesh.Edges[2*edge+1]-=4 ;
