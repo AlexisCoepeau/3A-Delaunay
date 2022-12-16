@@ -110,6 +110,7 @@ bool triangleCrossEdges(const int, const int, const int, const struct maillage &
 void Deletebox(struct maillage &, vector<int> &, int* &);
 void Delete(struct maillage &, int, vector<int> &, int* &, int);
 void Supprime_Triangle(struct maillage &, int, int*, int*) ;
+void Nettoyage(struct maillage &, int*) ;
 
 /**
 * @brief Fonction principale
@@ -170,6 +171,7 @@ int main(int argc, char* argv[])
   //   cout << "Triangle " << triangle << " a supprimer ? : " << mort[triangle] << endl ;
   // }
 
+  Nettoyage(mesh_Final, mort) ;
 
   Sortie("sortie.mesh", mesh_Final);
 
@@ -1308,7 +1310,6 @@ void swap(const int t1, const int t2, struct maillage &mesh){
 }
 
 
-
 void Supprime_Triangle(struct maillage &mesh, int triangle, int* dejaTreated, int* mort){
 
   mort[triangle]=1 ;
@@ -1377,5 +1378,58 @@ void Supprime_Triangle(struct maillage &mesh, int triangle, int* dejaTreated, in
       if((!bordIsEdge[trivoisin])&&(dejaTreated[voisin[trivoisin]]==0))
         Supprime_Triangle(mesh, voisin[trivoisin], dejaTreated, mort) ;
     }
+  }
+}
+
+void Nettoyage(struct maillage &mesh, int* mort){
+  // Nettoyage du tableau des sommets
+  mesh.Vertices.erase (mesh.Vertices.begin(),mesh.Vertices.begin()+8) ;
+  mesh.N_Vertices-=4 ;
+
+  // Nettoyage du tableau des triangles 
+  int posLastMort(-1) ;
+  int tailleFinale(0) ; 
+
+  int isMort=0 ;
+
+
+
+  for(int triangle=mesh.N_Triangles ; triangle>=0 ; triangle--){
+    
+    // Le triangle est à copier à l'endroit du dernier mort identifié
+    if(mort[triangle]==0){
+      // Recherche du premier mort pas remplacé
+      while((isMort==0)&&(posLastMort<mesh.N_Triangles)){
+        posLastMort++ ;
+        isMort=mort[posLastMort] ;
+      }
+
+      // Copie s'il y a un mort avant 
+      if((posLastMort<triangle)&&(posLastMort<mesh.N_Triangles)){
+        //copie 
+        mesh.Triangles[3*posLastMort]=mesh.Triangles[3*triangle] ;
+        mesh.Triangles[3*posLastMort+1]=mesh.Triangles[3*triangle+1] ;
+        mesh.Triangles[3*posLastMort+2]=mesh.Triangles[3*triangle+2] ;
+
+        //Pour relancer le while après
+        isMort=0 ;
+      }
+      
+      tailleFinale++ ;
+    }
+  }
+  mesh.N_Triangles=tailleFinale ; 
+  mesh.Triangles.resize(mesh.N_Triangles) ;
+
+
+  // Boucle de renumérotation 
+  for(int triangle=0 ; triangle< mesh.N_Triangles ; triangle++){
+    mesh.Triangles[3*triangle]-=4 ;
+    mesh.Triangles[3*triangle+1]-=4 ;
+    mesh.Triangles[3*triangle+2]-=4 ;
+  }
+  for(int edge=0 ; edge< mesh.N_Edges ; edge++){
+    mesh.Edges[2*edge]-=4 ;
+    mesh.Edges[2*edge+1]-=4 ;
   }
 }
