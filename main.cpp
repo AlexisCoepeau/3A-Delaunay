@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
   mesh_Final.Edges.resize(2*mesh_Final.N_Edges) ;
 
   for(int i=0 ; i< 2*mesh_Initial.N_Edges ; i++)
-  mesh_Final.Edges[i]=mesh_Initial.Edges[i]+4 ;
+    mesh_Final.Edges[i]=mesh_Initial.Edges[i]+4 ;
 
 
   for(int i=1; i<mesh_Initial.N_Vertices+1; i++)
@@ -149,7 +149,22 @@ int main(int argc, char* argv[])
 
   ForceBound(mesh_Final) ;
 
-  //Deletebox(mesh_Final, tabdejavu, triangles_a_supprimer)
+  cout << "iti" << endl ;
+
+  vector<int> tabdejavu ;
+  int* triangles_a_supprimer ;
+
+  Deletebox(mesh_Final, tabdejavu, triangles_a_supprimer) ;
+
+  cout << "itie" << endl ;
+
+
+  for(int triangle=0 ; triangle < mesh_Final.N_Triangles ; triangle++){
+    cout << "Triangle " << triangle << " a supprimer ? : " << triangles_a_supprimer[triangle] << endl ;
+  }
+
+  cout << "itiee" << endl ;
+
 
   Sortie("sortie.mesh", mesh_Final);
 
@@ -747,9 +762,11 @@ void ForceBound(struct maillage &mesh){
 
 void Deletebox(struct maillage &mesh, vector<int> &tabdejavu, int* &triangles_a_supprimer)
 {
-  //Intialisation du tableau des triangles à supprimer (0 si on ne supprime pas et 1 si on supprime le triangle i)
+  //Initialisation du tableau des triangles à supprimer (0 si on ne supprime pas et 1 si on supprime le triangle i)
   triangles_a_supprimer = (int*)malloc(mesh.N_Triangles*sizeof(int));
-  triangles_a_supprimer = 0;
+  
+  for(int i=0 ; i<mesh.N_Triangles ; i++)
+    triangles_a_supprimer[i] = 0;
 
   // Tableau contenant 1 (qui appartient à la boite)
   int NTrianglesS1 ;
@@ -759,7 +776,7 @@ void Deletebox(struct maillage &mesh, vector<int> &tabdejavu, int* &triangles_a_
   //On prend au hazard un des triangles qui a pour sommet 1 qui sera forcément un triangle qu'on souhaite supprimer
   int premier_triangle = tabTrianglesS1[0] ;
 
-  Delete(mesh, 1, tabdejavu, triangles_a_supprimer, 1);
+  Delete(mesh, premier_triangle, tabdejavu, triangles_a_supprimer, 1);
 
   free(tabTrianglesS1);
 }
@@ -795,22 +812,24 @@ void Delete(struct maillage &mesh, int triangle, vector<int> &tabdejavu, int* &t
           triangles_a_supprimer[numTriangle]=1;
           Delete(mesh, numTriangle, tabdejavu, triangles_a_supprimer, 0);
         }
-        if (((S1==S1edge)||(S1==S2edge))&&((S3==S1edge)||(S3==S2edge)))
+        else if (((S1==S1edge)||(S1==S2edge))&&((S3==S1edge)||(S3==S2edge)))
         {
           triangles_a_supprimer[numTriangle]=1;
           Delete(mesh, numTriangle, tabdejavu, triangles_a_supprimer, 0);
         }
-        if (((S2==S1edge)||(S2==S2edge))&&((S3==S1edge)||(S3==S2edge)))
+        else if (((S2==S1edge)||(S2==S2edge))&&((S3==S1edge)||(S3==S2edge)))
         {
           triangles_a_supprimer[numTriangle]=1;
           Delete(mesh, numTriangle, tabdejavu, triangles_a_supprimer, 0);
         }
-
-        // Si le triangle voisin n'est pas un triangle appartenant au domaine de calcul, on continue
-        triangles_a_supprimer[numTriangle]=1;
-        Delete(mesh, numTriangle, tabdejavu, triangles_a_supprimer, 1);
+        else
+        { // Si le triangle voisin n'est pas un triangle appartenant au domaine de calcul, on continue
+          triangles_a_supprimer[numTriangle]=1;
+          Delete(mesh, numTriangle, tabdejavu, triangles_a_supprimer, 1);
+        }
       }
     }
+    free(tabNeighbours) ;
   }
 }
 
@@ -1035,7 +1054,7 @@ void Triangle_to_its_neighbours_sans_deja_vu(const struct maillage &mesh, const 
   tabNeighbours=(int*)malloc(NTriangles*sizeof(int)) ;
 
   for(int triangle=0 ; triangle < NTriangles ; triangle++)
-  tabNeighbours[triangle] = Triangles_neighbours_Max[triangle] ;
+  	tabNeighbours[triangle] = Triangles_neighbours_Max[triangle] ;
 
   // Libération du tableau intermédiaire
   free(Triangles_neighbours_Max) ;
