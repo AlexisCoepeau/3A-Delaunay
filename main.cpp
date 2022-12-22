@@ -30,7 +30,7 @@ using namespace std;
 struct maillage
 {
   // Localisation des sommets
-  /** 
+  /**
   * @brief Nombre de sommets du maillage
   * @details Valeur nulle à l'initialisation.
   */
@@ -47,7 +47,7 @@ struct maillage
   */
   vector<double> Vertices;
 
-  /** 
+  /**
    * @brief Position minimale selon x des sommets du maillage
    * @details Valeur nulle à l'initialisation.
    */
@@ -59,7 +59,7 @@ struct maillage
   */
   double VerticesXMax=0.0 ;
 
-  /** 
+  /**
   * @brief Position minimale selon y des sommets du maillage
   * @details Valeur nulle à l'initialisation.
   */
@@ -71,12 +71,12 @@ struct maillage
   */
   double VerticesYMax=0.0 ;
 
-  /** 
-  * @brief Nombre de segments du maillage 
+  /**
+  * @brief Nombre de segments du maillage
   * @details Valeur nulle à l'initialisation.
   */
   int N_Edges=0 ;
-  
+
   /**
   * @brief Tableau des segments du maillage
   * @details Le tableau de segments est de taille 2 N_Edges. Il est contient le numéro des sommets pour chaque segment du maillage :
@@ -89,7 +89,7 @@ struct maillage
   vector<int> Edges;
   // Triangle entre trois sommets numérotés
 
-  /** 
+  /**
    * @brief Nombre de triangles du maillage
    * @details Valeur nulle à l'initialisation.
    */
@@ -130,7 +130,7 @@ double Distance2D(const double, const double, const double, const double) ;
 double Qualite2D(const int, const struct maillage &) ;
 int  Admissibilite(const double, const double, const int, const struct maillage &) ;
 bool IsPointInTriangle(const struct maillage &, const int, const double, const double) ;
-void isTriangleInDomain(struct maillage &, int, int*, int*) ;
+void isTriangleInDomain(struct maillage &, int, int*, int*, int) ;
 bool triangleCrossEdges(const int, const int, const int, const struct maillage &) ;
 
 /* Procédures de passage */
@@ -243,7 +243,6 @@ void Chargement(const char* fichier, struct maillage *mesh)
           mesh->VerticesYMin=min(mesh->VerticesYMin, stock) ;
           mesh->VerticesYMax=max(mesh->VerticesYMax, stock) ;
           mesh->Vertices.push_back(stock);  // stocké en 2*i+1
-
           monFlux >> indice;
         }
       }
@@ -419,10 +418,10 @@ void EcritureSol(const char* fichier, const struct maillage &mesh){
 * @param[in] ymin Position minimale de la boîte englobante dans la direction y.
 
 * @par Théorie et Algorithmie
-* La boîte englobante est dimensionnée à 150% de la plus petite boîte englobante possible. 
+* La boîte englobante est dimensionnée à 150% de la plus petite boîte englobante possible.
 *
 * @par Remarque
-* Il s'agit d'une procédure généralement appelé 
+* Il s'agit d'une procédure généralement appelé
 * @par Complexité
 * Temps constant.
 */
@@ -671,19 +670,19 @@ void ForceBound(struct maillage &mesh){
 /**
  * @brief Procédure de nettoyage des triangles externes au domaine à mailler
  * @details La procédure élimine du maillage les points de la boîte englobante et les triangles labellisés 1 (mort). Par ailleurs, elle met à jour les variables `N_Vertices` et `N_Triangles` et effectue un décalage des labels de points dans les tableaux `Edges` et `Triangles`.
- * 
+ *
  * @param[inout] mesh Structure de maillage.
  * @param[inout] mort Tableau des triangles à supprimer valant 0 (vie), 1(mort) indexé par les triangles.
- * 
+ *
  * @par Complexité
- * Temps linéaire en le nombre de triangles du maillage + le nombre de cotés du domaine. 
+ * Temps linéaire en le nombre de triangles du maillage + le nombre de cotés du domaine.
  */
 void Nettoyage(struct maillage &mesh, int* mort){
   // Nettoyage du tableau des sommets
   mesh.Vertices.erase (mesh.Vertices.begin(),mesh.Vertices.begin()+8) ;
   mesh.N_Vertices-=4 ;
 
-  // Nettoyage du tableau des triangles 
+  // Nettoyage du tableau des triangles
   int oldtriangle(0) ;
   int nvtriangle(0) ;
 
@@ -706,7 +705,7 @@ void Nettoyage(struct maillage &mesh, int* mort){
   }
 
   // Redimensionnement du tableau des triangles
-  mesh.N_Triangles=nvtriangle; 
+  mesh.N_Triangles=nvtriangle;
   mesh.Triangles.resize(mesh.N_Triangles) ;
 
   // Renumérotation du tableaux des frontières
@@ -721,23 +720,37 @@ void Nettoyage(struct maillage &mesh, int* mort){
  * @param[inout] mesh Structure de maillage.
  * @par Remarque
  * Cette fonction est la concaténation de la procédure récursive isTriangleInDomain et la procédure Nettoyage.
- * 
+ *
  * @sa isTriangleInDomain, Nettoyage
 */
+// void SupprimeTrianglesHorsDomaine(struct maillage & mesh){
+//
+//   int dejaTraite[mesh.N_Triangles] ;
+//   int mort[mesh.N_Triangles] ;
+//   for(int j=0 ; j <mesh.N_Triangles ; j++){
+//     mort[j]=0 ;
+//     dejaTraite[j]=0 ;
+//   }
+//   isTriangleInDomain(mesh, 0, dejaTraite, mort) ;
+//
+//
+//   Nettoyage(mesh, mort) ;
+// }
+
 void SupprimeTrianglesHorsDomaine(struct maillage & mesh){
-  
+
   int dejaTraite[mesh.N_Triangles] ;
   int mort[mesh.N_Triangles] ;
   for(int j=0 ; j <mesh.N_Triangles ; j++){
     mort[j]=0 ;
     dejaTraite[j]=0 ;
   }
-  isTriangleInDomain(mesh, 0, dejaTraite, mort) ;
+  int couleur = 1;
+  isTriangleInDomain(mesh, 0, dejaTraite, mort, couleur) ;
 
 
   Nettoyage(mesh, mort) ;
 }
-
 
 /* FONCTIONS/PROCÉDURE DE TESTS OU DE CALCUL */
 /**
@@ -924,14 +937,16 @@ bool IsPointInTriangle(const struct maillage &mesh, const int numTriangle, const
  * @param[inout] triangle Numéro du triangle de `mesh` à analyser.
  * @param[inout] dejaTraite Tableau de 0/1 indexé sur les triangles qui vaut 1 si le triangle `triangle` a été observé, 0 sinon.
  * @param[inout] mort Tableau indexé sur les tableau, valant 1 si le tableau est à supprimer, 0 sinon.
+ * @param[inout] couleur Entier désignant si le triangle appartient au domaine final (=0) ou si le triangle à supprimer appartient aux éléments de la boîte (=1).
  * @par Complexité
  * La procédure est récursive sur les voisins de chaque triangle mais est limitée grâce au tableau `dejaTraite`.
 */
-void isTriangleInDomain(struct maillage &mesh, int triangle, int* dejaTraite, int* mort){
 
-  // Le triangle est a supprimé quoi qu'il arrive
-  mort[triangle]=1 ;
-  dejaTraite[triangle]=1 ; 
+void isTriangleInDomain(struct maillage &mesh, int triangle, int* dejaTraite, int* mort, int couleur){
+
+  // Le triangle est a supprimé si couleur (=1, triangle à supprimer appartient aux éléments de la boîte) et à garder si (=0, triangle appartient au domaine final)
+  mort[triangle]=couleur ;
+  dejaTraite[triangle]=1 ;
 
   int voisin[3]={-1,-1,-1} ; // voisin[i] serra le numéro du triangle voisin à triangle par le sommet i (numéro local).
   int position ;
@@ -966,7 +981,7 @@ void isTriangleInDomain(struct maillage &mesh, int triangle, int* dejaTraite, in
 
   // Les voisins sont stockés dans le tableau voisin de taille 3 //////////////
 
-  // Test quels bord du triangle sont des egdes 
+  // Test quels bord du triangle sont des egdes
   bool bordIsEdge[3]={false, false, false} ;
 
   for(int edge=0 ; edge < mesh.N_Edges ; edge++){
@@ -990,14 +1005,101 @@ void isTriangleInDomain(struct maillage &mesh, int triangle, int* dejaTraite, in
   }
 
   // Lancement de la mort des voisins par les cotés qui ne sont pas edges
-  for(int trivoisin=0 ; trivoisin<3 ; trivoisin++){
-    // SI le bord n'est pas une frontière du domaine 
-    if(!voisin[trivoisin]!=-1){
+  for(int trivoisin=0 ; trivoisin<3 ; trivoisin++)
+  {
+    int couleurvoisin;
+    // SI le bord n'est pas une frontière du domaine
+    if(!voisin[trivoisin]!=-1)
+    {
       if((!bordIsEdge[trivoisin])&&(dejaTraite[voisin[trivoisin]]==0))
-        isTriangleInDomain(mesh, voisin[trivoisin], dejaTraite, mort) ;
+      {
+        couleurvoisin=couleur;
+        isTriangleInDomain(mesh, voisin[trivoisin], dejaTraite, mort, couleurvoisin) ;
+      }
+      else if ((bordIsEdge[trivoisin])&&(dejaTraite[voisin[trivoisin]]==0))
+      {
+        couleurvoisin = couleur + 1;
+        couleurvoisin = couleurvoisin%2;
+        isTriangleInDomain(mesh, voisin[trivoisin], dejaTraite, mort, couleurvoisin) ;
+      }
     }
   }
 }
+
+
+// void isTriangleInDomain(struct maillage &mesh, int triangle, int* dejaTraite, int* mort){
+//
+//   // Le triangle est a supprimé quoi qu'il arrive
+//   mort[triangle]=1 ;
+//   dejaTraite[triangle]=1 ;
+//
+//   int voisin[3]={-1,-1,-1} ; // voisin[i] serra le numéro du triangle voisin à triangle par le sommet i (numéro local).
+//   int position ;
+//
+//   int S1 = mesh.Triangles[3*triangle] ;
+//   int S2 = mesh.Triangles[3*triangle+1] ;
+//   int S3 = mesh.Triangles[3*triangle+2] ;
+//
+//   // Récupération des voisins ///////////////////////////
+//   for(int triVoisin=0 ; triVoisin < mesh.N_Triangles ; triVoisin++){
+//     int placeS1iDans2[3] ={-1,-1,-1} ;
+//
+//       for(int i=0; i<3 ; i++){
+//         for(int j=0 ; j<3 ; j++){
+//           if(mesh.Triangles[3*triangle+i] == mesh.Triangles[3*triVoisin+j]) // S1i = S2j
+//           placeS1iDans2[i]=j ;
+//         }
+//       }
+//       // Vérification qu'il n'y a que 1 seul indice -1
+//       int compteur(0) ;
+//       for(int k=0 ; k<3 ; k++){
+//         if(placeS1iDans2[k]==-1){
+//           compteur++ ;
+//           position=k ;
+//         }
+//       }
+//
+//       if(compteur==1){ // Alors on a bien un triangle voisin opposé au sommet k
+//         voisin[position]=triVoisin ;
+//       }
+//   }
+//
+//   // Les voisins sont stockés dans le tableau voisin de taille 3 //////////////
+//
+//   // Test quels bord du triangle sont des egdes
+//   bool bordIsEdge[3]={false, false, false} ;
+//
+//   for(int edge=0 ; edge < mesh.N_Edges ; edge++){
+//     int S1edge = mesh.Edges[2*edge] ;
+//     int S2edge = mesh.Edges[2*edge+1] ;
+//
+//     // Test S2 et S3 sur l'edge
+//     if(((S2==S1edge)||(S2==S2edge))&&((S3==S1edge)||(S3==S2edge))){ // S2S3 est le edge
+//       bordIsEdge[0]=true ;
+//     }
+//
+//     // Test S1 et S3 sur l'edge
+//     if(((S1==S1edge)||(S1==S2edge))&&((S3==S1edge)||(S3==S2edge))){ // S2S3 est le edge
+//       bordIsEdge[1]=true ;
+//     }
+//
+//     // Test S1 et S2 sur l'edge
+//     if(((S1==S1edge)||(S1==S2edge))&&((S2==S1edge)||(S2==S2edge))){ // S2S3 est le edge
+//       bordIsEdge[2]=true ;
+//     }
+//   }
+//
+//   // Lancement de la mort des voisins par les cotés qui ne sont pas edges
+//   for(int trivoisin=0 ; trivoisin<3 ; trivoisin++){
+//     // SI le bord n'est pas une frontière du domaine
+//     if(!voisin[trivoisin]!=-1){
+//       if((!bordIsEdge[trivoisin])&&(dejaTraite[voisin[trivoisin]]==0))
+//         isTriangleInDomain(mesh, voisin[trivoisin], dejaTraite, mort) ;
+//     }
+//   }
+// }
+
+
 
 /**
 * @brief Fonction qui renvoie vrai sur un triangle donné coupe le segment entre 2 sommets donné.
@@ -1005,7 +1107,7 @@ void isTriangleInDomain(struct maillage &mesh, int triangle, int* dejaTraite, in
 * @param[in] sommet Numéro du premier sommet <b> qui appartient au triangle</b>.
 * @param[in] sommet_opp Numéro du sommet opposé par le segment à sommet numéro `sommet.
 * @param[in] mesh Structure de maillage.
-* @par Complexité 
+* @par Complexité
 * Temps constant.
 */
 bool triangleCrossEdges(const int triangle, const int sommet, const int sommet_opp, const struct maillage &mesh){
@@ -1274,7 +1376,7 @@ void Deletebox(struct maillage &mesh, vector<int> &tabdejavu, int* &triangles_a_
 {
   //Initialisation du tableau des triangles à supprimer (0 si on ne supprime pas et 1 si on supprime le triangle i)
   triangles_a_supprimer = (int*)malloc(mesh.N_Triangles*sizeof(int));
-  
+
   for(int i=0 ; i<mesh.N_Triangles ; i++)
     triangles_a_supprimer[i] = 0;
 
