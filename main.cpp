@@ -124,6 +124,7 @@ void swap(const int, const int, struct maillage &) ;
 void ForceBound(struct maillage &) ;
 void Nettoyage(struct maillage &, int*) ;
 void SupprimeTrianglesHorsDomaine(struct maillage &) ;
+void Raffine(struct maillage &) ;
 
 /* Fonctions/Procédure de tests ou de calcul */
 double Distance2D(const double, const double, const double, const double) ;
@@ -190,6 +191,10 @@ int main(int argc, char* argv[])
   // Supprimes les triangles hors du domaine
   SupprimeTrianglesHorsDomaine(mesh_Final) ;
 
+  // Raffine par 4 fois par 2 le maillage
+  for(int i=0 ; i<4 ; i++)
+    Raffine(mesh_Final) ;
+ 
   // Écriture du maillage et des qualités des mailles
   Sortie("sortie.mesh", mesh_Final);
   EcritureSol("sortie.sol", mesh_Final) ;
@@ -706,7 +711,7 @@ void Nettoyage(struct maillage &mesh, int* mort){
 
   // Redimensionnement du tableau des triangles
   mesh.N_Triangles=nvtriangle;
-  mesh.Triangles.resize(mesh.N_Triangles) ;
+  mesh.Triangles.resize(3*mesh.N_Triangles) ;
 
   // Renumérotation du tableaux des frontières
   for(int edge=0 ; edge< mesh.N_Edges ; edge++){
@@ -751,6 +756,132 @@ void SupprimeTrianglesHorsDomaine(struct maillage & mesh){
 
   Nettoyage(mesh, mort) ;
 }
+
+
+/**
+ * @brief Procédure qui divise tous les triangles en 4 par un facteur géométrique de 2.
+ * @details Le nombre de sommets, les sommets, le tableaux des triangles et le tableaux des cotés sont mis à jour lors de l'appel à cette procédure.
+ * @param[in] mesh Structure de maillage.
+*/
+void Raffine(struct maillage &mesh){
+
+  // Tableau des nv points indexé sur les triangles
+  int *nvPoints;
+  nvPoints = (int*) malloc(3*mesh.N_Triangles * sizeof(int)) ; 
+  for(int i=0 ; i<3*mesh.N_Triangles ; i++){
+    nvPoints[i]=0 ;
+  }
+ 
+  // Création des nouveaux points 
+  for(int triangle=0 ; triangle < mesh.N_Triangles ; triangle++){
+    for(int sommetLocal=0 ; sommetLocal < 3 ; sommetLocal++){
+
+      // Teste si le sommet n'a pas déjà été crée
+      if(nvPoints[3*triangle+sommetLocal]==0){
+        mesh.N_Vertices++ ;
+
+        //Autres sommets du triangle
+        int S2, S3 ;
+        S2 = (sommetLocal+1)%3 ;
+        S3 = (sommetLocal+2)%3 ;   
+
+        S2 = mesh.Triangles[3*triangle+S2] ;
+        S3 = mesh.Triangles[3*triangle+S3] ;
+
+        mesh.Vertices.push_back((mesh.Vertices[2*(S2-1)]  +mesh.Vertices[2*(S3-1)])  /2) ; // (S2x+S3x)/2
+        mesh.Vertices.push_back((mesh.Vertices[2*(S2-1)+1]+mesh.Vertices[2*(S3-1)+1])/2) ; // (S2y+S3y)/2
+
+        // Ajout comme étant nouveau sommet dans le triangle courant
+        nvPoints[3*triangle+sommetLocal]=mesh.N_Vertices ;
+
+        // Recherche du triangle opposé (s'il existe)
+        // Tableau contenant S2
+        int NTrianglesS2 ;
+        int *tabTrianglesS2 ;
+        NodeToTriangles(mesh, S2, tabTrianglesS2, NTrianglesS2) ;
+
+        // Recherches du triangle qui contient S2 ET S3 (et qui n'est pas le triangle courant)
+        bool S3inclus(false) ;
+        int tri(0) ;
+        int tri_cand(-1) ; // triangle candidat 
+        while(not(S3inclus)&&(tri < NTrianglesS2)){
+          tri_cand = tabTrianglesS2[tri] ;      // Numéro du tri-ieme triangle, triangle candidat, contenant S2
+          S3inclus=((mesh.Triangles[3*tri_cand]==S3)||(mesh.Triangles[3*tri_cand+1]==S3)||(mesh.Triangles[3*tri_cand+2]==S3)) ; // vrai si S3 inclus dans le triangle candidat tri_cand
+          S3inclus=S3inclus&&(tri_cand!=triangle) ; // vérifie que le triangle candidat est différent du triangle courant
+          tri++ ;
+        }
+        if(S3inclus){ // Alors il y a bien un triangle opposé qui est le dernier candidat
+          // Recherche du sommet local auquel le nouveau point fait face
+          int pos(-1) ;
+          bool posIsS2OrS3(true) ;
+
+          while(posIsS2OrS3&&(pos<2)){
+            pos++ ;
+            posIsS2OrS3=((S2==mesh.Triangles[3*tri_cand+pos])||(S3==mesh.Triangles[3*tri_cand+pos])) ;
+          }
+          nvPoints[3*tri_cand+pos]=mesh.N_Vertices ;
+        }
+
+        // Création des nouvelles arrêtes le cas échéant
+        bool isEdge(false) ; 
+        int edge(-1) ;
+        while(not(isEdge)&&(edge<mesh.N_Edges-1)){
+          edge++ ;
+          isEdge=((mesh.Edges[2*edge]==min(S2,S3))&&(mesh.Edges[2*edge+1]==max(S2,S3))) ;
+        }
+        if(edge<mesh.N_Edges){//Dans ce cas, on a bien un coté
+          mesh.Edges[2*edge]=min(S2,mesh.N_Vertices) ;
+          mesh.Edges[2*edge+1]=max(S2,mesh.N_Vertices) ;
+
+          mesh.Edges.push_back(min(mesh.N_Vertices,S3)) ;
+          mesh.Edges.push_back(max(mesh.N_Vertices,S3)) ;
+        }
+      }
+    }
+  }
+
+  mesh.Triangles.resize(4*3*mesh.N_Triangles) ;
+
+  // Création des nouveaux triangles 
+  for(int triangle=0 ; triangle < mesh.N_Triangles ; triangle++){
+    
+    // Labels
+    int S1=mesh.Triangles[3*triangle  ] ;
+    int S2=mesh.Triangles[3*triangle+1] ;
+    int S3=mesh.Triangles[3*triangle+2] ;
+
+    int nvS1=nvPoints[3*triangle  ] ;
+    int nvS2=nvPoints[3*triangle+1] ;
+    int nvS3=nvPoints[3*triangle+2] ;
+
+    // Remplacement du triangle initiale
+    mesh.Triangles[3*triangle]=S1     ;
+    mesh.Triangles[3*triangle+1]=nvS2 ;
+    mesh.Triangles[3*triangle+2]=nvS3 ;
+
+    // 1e triangle
+    mesh.Triangles[3*mesh.N_Triangles+9*triangle]=S2   ;
+    mesh.Triangles[3*mesh.N_Triangles+9*triangle+1]=nvS1 ;
+    mesh.Triangles[3*mesh.N_Triangles+9*triangle+2]=nvS3 ;
+
+    // 2e triangle
+    mesh.Triangles[3*mesh.N_Triangles+9*triangle+3]=S3   ;
+    mesh.Triangles[3*mesh.N_Triangles+9*triangle+4]=nvS1 ;
+    mesh.Triangles[3*mesh.N_Triangles+9*triangle+5]=nvS2 ;
+
+    // 3e triangle
+    mesh.Triangles[3*mesh.N_Triangles+9*triangle+6]=nvS1 ;
+    mesh.Triangles[3*mesh.N_Triangles+9*triangle+7]=nvS2 ;
+    mesh.Triangles[3*mesh.N_Triangles+9*triangle+8]=nvS3 ;
+
+  }
+
+  mesh.N_Edges*=2 ;
+  mesh.N_Triangles*=4 ;
+
+  free(nvPoints) ;
+}
+
 
 /* FONCTIONS/PROCÉDURE DE TESTS OU DE CALCUL */
 /**
@@ -1098,8 +1229,6 @@ void isTriangleInDomain(struct maillage &mesh, int triangle, int* dejaTraite, in
 //     }
 //   }
 // }
-
-
 
 /**
 * @brief Fonction qui renvoie vrai sur un triangle donné coupe le segment entre 2 sommets donné.
