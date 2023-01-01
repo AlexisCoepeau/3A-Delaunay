@@ -1,0 +1,19 @@
+# VS Code settings
+*.json
+
+# Doxygen files
+html/*
+
+# Build files
+*.mod 
+*.o
+exec
+
+# Run files
+*.log
+*.dat
+*.vtk
+*.png
+*.gif
+gmon.out
+analyse.txt

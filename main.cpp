@@ -668,7 +668,10 @@ void ForceBound(struct maillage &mesh){
 
       // Swap final
       swap(tabTrianglesS1[i], tabTrianglesS2[j], mesh) ;
+
+      free(tabTrianglesS2) ;
     }
+    free(tabTrianglesS1) ;
   }
 }
 
@@ -836,6 +839,7 @@ void Raffine(struct maillage &mesh){
           mesh.Edges.push_back(min(mesh.N_Vertices,S3)) ;
           mesh.Edges.push_back(max(mesh.N_Vertices,S3)) ;
         }
+        free(tabTrianglesS2) ;
       }
     }
   }
