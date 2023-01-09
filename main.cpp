@@ -723,27 +723,6 @@ void Nettoyage(struct maillage &mesh, int* mort){
   }
 }
 
-/**
- * @brief Procédure qui supprime les triangles en dehors du domaine.
- * @param[inout] mesh Structure de maillage.
- * @par Remarque
- * Cette fonction est la concaténation de la procédure récursive isTriangleInDomain et la procédure Nettoyage.
- *
- * @sa isTriangleInDomain, Nettoyage
-*/
-// void SupprimeTrianglesHorsDomaine(struct maillage & mesh){
-//
-//   int dejaTraite[mesh.N_Triangles] ;
-//   int mort[mesh.N_Triangles] ;
-//   for(int j=0 ; j <mesh.N_Triangles ; j++){
-//     mort[j]=0 ;
-//     dejaTraite[j]=0 ;
-//   }
-//   isTriangleInDomain(mesh, 0, dejaTraite, mort) ;
-//
-//
-//   Nettoyage(mesh, mort) ;
-// }
 
 void SupprimeTrianglesHorsDomaine(struct maillage & mesh){
 
@@ -965,31 +944,12 @@ int Admissibilite(const double x, const double y, const int numTriangle, const s
   s3x = mesh.Vertices[(mesh.Triangles[3*numTriangle+2]-1)*2];
   s3y = mesh.Vertices[(mesh.Triangles[3*numTriangle+2]-1)*2+1];
 
-  //Test
-  // s3x = 3.0;
-  // s3y = 2.8;
-  // s2x = 3.72;
-  // s2y = 2.76;
-  // s1x = 0.145;
-  // s1y = 4.314;
-
   //Propriétés du cercle circonscrit au triangle
   double a, b, c, d, e, f, g, alpha, xcentre, ycentre, rayon;
   //Distance entre le point et le centre du cercle circonscrit
   double dist=0.0;
   //Admissible -1 si ne respecte pas le critère de Delaunay et 0 sinon
   int Delaunay=0;
-
-  // a = s2x - s1x;
-  // b = s2y - s1y;
-  // c = s3x - s1x;
-  // d = s3y - s1y;
-  // e = s2x*s2x - s1x*s1x + s2y*s2x - s1y*s1y;
-  // f = s3x*s3x - s1x*s1x + s3y*s3y - s1y*s1y;
-  // g = -(1./(2.*(a*d-b*c)));
-  //
-  // xcentre = g*( d*e - b*f);
-  // ycentre = g*(-c*e + a*f);
 
   a = s1y - s2y;
   b = s3y - s1y;
@@ -1160,79 +1120,6 @@ void isTriangleInDomain(struct maillage &mesh, int triangle, int* dejaTraite, in
     }
   }
 }
-
-
-// void isTriangleInDomain(struct maillage &mesh, int triangle, int* dejaTraite, int* mort){
-//
-//   // Le triangle est a supprimé quoi qu'il arrive
-//   mort[triangle]=1 ;
-//   dejaTraite[triangle]=1 ;
-//
-//   int voisin[3]={-1,-1,-1} ; // voisin[i] serra le numéro du triangle voisin à triangle par le sommet i (numéro local).
-//   int position ;
-//
-//   int S1 = mesh.Triangles[3*triangle] ;
-//   int S2 = mesh.Triangles[3*triangle+1] ;
-//   int S3 = mesh.Triangles[3*triangle+2] ;
-//
-//   // Récupération des voisins ///////////////////////////
-//   for(int triVoisin=0 ; triVoisin < mesh.N_Triangles ; triVoisin++){
-//     int placeS1iDans2[3] ={-1,-1,-1} ;
-//
-//       for(int i=0; i<3 ; i++){
-//         for(int j=0 ; j<3 ; j++){
-//           if(mesh.Triangles[3*triangle+i] == mesh.Triangles[3*triVoisin+j]) // S1i = S2j
-//           placeS1iDans2[i]=j ;
-//         }
-//       }
-//       // Vérification qu'il n'y a que 1 seul indice -1
-//       int compteur(0) ;
-//       for(int k=0 ; k<3 ; k++){
-//         if(placeS1iDans2[k]==-1){
-//           compteur++ ;
-//           position=k ;
-//         }
-//       }
-//
-//       if(compteur==1){ // Alors on a bien un triangle voisin opposé au sommet k
-//         voisin[position]=triVoisin ;
-//       }
-//   }
-//
-//   // Les voisins sont stockés dans le tableau voisin de taille 3 //////////////
-//
-//   // Test quels bord du triangle sont des egdes
-//   bool bordIsEdge[3]={false, false, false} ;
-//
-//   for(int edge=0 ; edge < mesh.N_Edges ; edge++){
-//     int S1edge = mesh.Edges[2*edge] ;
-//     int S2edge = mesh.Edges[2*edge+1] ;
-//
-//     // Test S2 et S3 sur l'edge
-//     if(((S2==S1edge)||(S2==S2edge))&&((S3==S1edge)||(S3==S2edge))){ // S2S3 est le edge
-//       bordIsEdge[0]=true ;
-//     }
-//
-//     // Test S1 et S3 sur l'edge
-//     if(((S1==S1edge)||(S1==S2edge))&&((S3==S1edge)||(S3==S2edge))){ // S2S3 est le edge
-//       bordIsEdge[1]=true ;
-//     }
-//
-//     // Test S1 et S2 sur l'edge
-//     if(((S1==S1edge)||(S1==S2edge))&&((S2==S1edge)||(S2==S2edge))){ // S2S3 est le edge
-//       bordIsEdge[2]=true ;
-//     }
-//   }
-//
-//   // Lancement de la mort des voisins par les cotés qui ne sont pas edges
-//   for(int trivoisin=0 ; trivoisin<3 ; trivoisin++){
-//     // SI le bord n'est pas une frontière du domaine
-//     if(!voisin[trivoisin]!=-1){
-//       if((!bordIsEdge[trivoisin])&&(dejaTraite[voisin[trivoisin]]==0))
-//         isTriangleInDomain(mesh, voisin[trivoisin], dejaTraite, mort) ;
-//     }
-//   }
-// }
 
 /**
 * @brief Fonction qui renvoie vrai sur un triangle donné coupe le segment entre 2 sommets donné.
@@ -1427,31 +1314,11 @@ void Cercle(int i, struct maillage &mesh, double x, double y)
   s3x = mesh.Vertices[(mesh.Triangles[3*i+2]-1)*2];
   s3y = mesh.Vertices[(mesh.Triangles[3*i+2]-1)*2+1];
 
-  //Test
-  // s3x = 3.0;
-  // s3y = 2.8;
-  // s2x = 3.72;
-  // s2y = 2.76;
-  // s1x = 0.145;
-  // s1y = 4.314;
-
   //Propriétés du cercle circonscrit au triangle
   double a, b, c, d, e, f, g, alpha, xcentre, ycentre, rayon;
   //Autres
   int N=100;
   double theta, coef;
-
-  // a = s2x - s1x;
-  // b = s2y - s1y;
-  // c = s3x - s1x;
-  // d = s3y - s1y;
-  // e = s2x*s2x - s1x*s1x + s2y*s2x - s1y*s1y;
-  // f = s3x*s3x - s1x*s1x + s3y*s3y - s1y*s1y;
-  // g = -(1./(2.*(a*d-b*c)));
-  //
-  // xcentre = g*( d*e - b*f);
-  // ycentre = g*(-c*e + a*f);
-  //
 
   a = s1y - s2y;
   b = s3y - s1y;
@@ -1682,28 +1549,6 @@ void Triangle_to_its_neighbours_sans_deja_vu(const struct maillage &mesh, const 
         tabdejavu.push_back(triangle);
         NTriangles++ ;
       }
-
-
-
-
-      // if(((S1tilde==S1)||(S1tilde==S2)||(S1tilde==S3))&&((S2tilde==S1)||(S2tilde==S2)||(S2tilde==S3)))
-      // {
-      //   Triangles_neighbours_Max[NTriangles] = triangle ;
-      //   tabdejavu.push_back(triangle);
-      //   NTriangles++ ;
-      // }
-      // else if(((S1tilde==S1)||(S1tilde==S2)||(S1tilde==S3))&&((S3tilde==S1)||(S3tilde==S2)||(S3tilde==S3)))
-      // {
-      //   Triangles_neighbours_Max[NTriangles] = triangle ;
-      //   tabdejavu.push_back(triangle);
-      //   NTriangles++ ;
-      // }
-      // else if(((S2tilde==S1)||(S2tilde==S2)||(S2tilde==S3))&&((S3tilde==S1)||(S3tilde==S2)||(S3tilde==S3)))
-      // {
-      //   Triangles_neighbours_Max[NTriangles] = triangle ;
-      //   tabdejavu.push_back(triangle);
-      //   NTriangles++ ;
-      // }
     }
   }
 
