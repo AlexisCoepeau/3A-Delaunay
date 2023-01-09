@@ -408,6 +408,10 @@ void EcritureSol(const char* fichier, const struct maillage &mesh){
     monFlux << endl ;
     monFlux << "SolAtTriangles" << endl ;
     monFlux << mesh.N_Triangles << endl ;
+
+    // Nombre de solutions (1) et type de la solution (1=scalaire)
+    monFlux << "1 1" << endl ;    
+                 
     for(int triangle=0 ; triangle < mesh.N_Triangles ; triangle++){
       monFlux << Qualite2D(triangle, mesh) << endl ;
     }
