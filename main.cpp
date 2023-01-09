@@ -1104,7 +1104,7 @@ void isTriangleInDomain(struct maillage &mesh, int triangle, int* dejaTraite, in
   {
     int couleurvoisin;
     // SI le bord n'est pas une frontière du domaine
-    if(!voisin[trivoisin]!=-1)
+    if(voisin[trivoisin]!=-1)
     {
       if((!bordIsEdge[trivoisin])&&(dejaTraite[voisin[trivoisin]]==0))
       {
