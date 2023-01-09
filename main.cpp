@@ -125,6 +125,7 @@ void ForceBound(struct maillage &) ;
 void Nettoyage(struct maillage &, int*) ;
 void SupprimeTrianglesHorsDomaine(struct maillage &) ;
 void Raffine(struct maillage &) ;
+void Quality_Improvement_By_Swap(struct maillage &mesh) ; 
 
 /* Fonctions/Procédure de tests ou de calcul */
 double Distance2D(const double, const double, const double, const double) ;
@@ -191,9 +192,13 @@ int main(int argc, char* argv[])
   // Supprimes les triangles hors du domaine
   SupprimeTrianglesHorsDomaine(mesh_Final) ;
 
+  // Swap, amélioration qualité
+  Quality_Improvement_By_Swap(mesh_Final);
+
+
   // Raffine par 4 fois par 2 le maillage
-  for(int i=0 ; i<4 ; i++)
-    Raffine(mesh_Final) ;
+  //for(int i=0 ; i<4 ; i++)
+    //Raffine(mesh_Final) ;
  
   // Écriture du maillage et des qualités des mailles
   Sortie("sortie.mesh", mesh_Final);
@@ -204,6 +209,69 @@ int main(int argc, char* argv[])
 }
 
 /* CONTAINS */////////////////////////////////////////////////////////
+
+
+
+void Quality_Improvement_By_Swap(struct maillage &mesh){
+
+  for (int triangle=0; triangle<mesh.N_Triangles; triangle++)
+  {
+     int voisin[3]={-1,-1,-1} ; // voisin[i] serra le numéro du triangle voisin à triangle par le sommet i (numéro local).
+     int position ;
+
+     int S1 = mesh.Triangles[3*triangle] ;
+     int S2 = mesh.Triangles[3*triangle+1] ;
+     int S3 = mesh.Triangles[3*triangle+2] ;
+
+  // Récupération des voisins ///////////////////////////
+     for(int triVoisin=0 ; triVoisin < mesh.N_Triangles ; triVoisin++){
+      int placeS1iDans2[3] ={-1,-1,-1} ;
+
+      for(int i=0; i<3 ; i++){
+        for(int j=0 ; j<3 ; j++){
+          if(mesh.Triangles[3*triangle+i] == mesh.Triangles[3*triVoisin+j]) // S1i = S2j
+            placeS1iDans2[i]=j ;
+        }
+      }
+      // Vérification qu'il n'y a que 1 seul indice -1
+      int compteur(0) ;
+      for(int k=0 ; k<3 ; k++){
+        if(placeS1iDans2[k]==-1){
+          compteur++ ;
+          position=k ;
+        }
+      }
+
+      if(compteur==1){ // Alors on a bien un triangle voisin opposé au sommet k
+        voisin[position]=triVoisin ;
+      }
+    }
+
+
+    for(int i=0; i<3; i++)
+    {
+      if(voisin[i]!=-1)
+      {
+
+        double Quality_Triangle0 = Qualite2D(triangle, mesh);
+        double Quality_Voisin0=Qualite2D(voisin[i],mesh);
+        double Quality_Max0 = max(Quality_Triangle0, Quality_Voisin0);
+        swap(triangle, voisin[i], mesh);
+        double Quality_Triangle1 = Qualite2D(triangle, mesh);
+        double Quality_Voisin1=Qualite2D(voisin[i],mesh);
+        double Quality_Max1 = max(Quality_Triangle1, Quality_Voisin1);
+
+        if(Quality_Max0 < Quality_Max1)
+        {
+          swap(triangle, voisin[i], mesh);
+        }
+      }
+    }
+
+  }
+
+}
+
 /* ENTRÉES-SORTIE*/
 /**
 * @brief Procédure de chargement du maillage
@@ -622,10 +690,16 @@ void swap(const int t1, const int t2, struct maillage &mesh){
       j++ ;
     }
 
-    // On écrase i+1 par j
-    mesh.Triangles[3*t1+((i+1)%3)]= mesh.Triangles[3*t2+j] ;
-    // On écrase l'autre sommet commun dans T2
-    mesh.Triangles[3*t2+(placeS1iDans2[(i+2)%3])] =  mesh.Triangles[3*t1+i] ;
+    // Verification du cas de la flèche
+    double xmoy = (mesh.Vertices[2*(mesh.Triangles[3*t1+i]-1)  ]+mesh.Vertices[2*(mesh.Triangles[3*t2+j]-1)]  )/2;
+    double ymoy = (mesh.Vertices[2*(mesh.Triangles[3*t1+i]-1)+1]+mesh.Vertices[2*(mesh.Triangles[3*t2+j]-1)+1])/2;
+    if((IsPointInTriangle(mesh, t1, xmoy, ymoy)==true)||(IsPointInTriangle(mesh, t2, xmoy, ymoy)==true))
+    {
+      // On écrase i+1 par j
+      mesh.Triangles[3*t1+((i+1)%3)]= mesh.Triangles[3*t2+j] ;
+      // On écrase l'autre sommet commun dans T2
+      mesh.Triangles[3*t2+(placeS1iDans2[(i+2)%3])] =  mesh.Triangles[3*t1+i] ;      
+    }
   }
 }
 
