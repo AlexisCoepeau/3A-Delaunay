@@ -5,7 +5,7 @@
 
 
 ## **Cadre du projet**
----------------------
+
 ### **Institution** 
 - [Bordeaux-INP, Enseirb-Matmeca](https://enseirb-matmeca.bordeaux-inp.fr/fr)
 
@@ -83,9 +83,9 @@ Le maillage peut être visualisé avec `gmsh` ou `medit`.
 
 ### **Génération de la documentation**
 
-Dans le répertoire courant, tapez la commande :
+Dans le répertoire `./src`, tapez la commande :
 
-`doxygen configFile` 
+`doxygen doxyFile` 
 
 <div style='text-align:center'>
     <img src="./Documentation/EMMK-logo.png" alt="Logo Enseirb-Matmeca">
