@@ -1,6 +1,6 @@
 <table style="width:100%">
     <tr > <td> <h1> <a href="https://ccc.bordeaux-inp.fr/syllabus/index.php?annee=2022&mode=consultation&chemin=71125_71123_71122_71105_71104_71019_70340&langue=1">Projet 3A CHP 2022-2023</a> <br> Création d'un mailleur de Delaunay </h1> 
- </td> <td> <img src="./EMMK-logo.png" alt="Logo Enseirb-Matmeca"> </td> </tr>
+ </td> <td> <img src="./Documentation/EMMK-logo.png" alt="Logo Enseirb-Matmeca"> </td> </tr>
 </table>
 
 
@@ -20,14 +20,14 @@
 
 ### **Sujet**
 
-Le [sujet](./projet_delaunay.pdf) de projet est disponible au sein de cette archive.
+Le [sujet](./Documentation/projet_delaunay.pdf) de projet est disponible au sein de ce dépôt.
 
 ### **Méthodes utilisées**
 
 Le code de calcul a été programmé en `C++`.
 
 ## **Prise en main du code de calcul**
----------------------------------------------
+
 
 ### **Installation**
 
@@ -74,7 +74,7 @@ Dans le répertoire courant, tapez la commande :
 `doxygen configFile` 
 
 <div style='text-align:center'>
-    <img src="./EMMK-logo.png" alt="Logo Enseirb-Matmeca">
+    <img src="./Documentation/EMMK-logo.png" alt="Logo Enseirb-Matmeca">
 
 Ce travail est la propriété de l'[Enseirb-Matmeca](https://enseirb-matmeca.bordeaux-inp.fr/fr).
 </div>

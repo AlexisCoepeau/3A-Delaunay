@@ -5,7 +5,7 @@ DEBUG = -g -pg -O0
 PERF = -O3
 
 #Choix de l'option finale 
-OPT = ${DEBUG}
+OPT = ${PERF}
 
 exec : main.o
 	${G++} ${OPT} -std=${STD} -o $@ $^
@@ -14,4 +14,7 @@ exec : main.o
 	${G++} ${OPT} -std=${STD} -c $^
 
 clean : 
-	rm *.o  exec
+	rm *.o
+
+cleanall :
+	rm -r sortie.mesh sortie.sol html *.o 

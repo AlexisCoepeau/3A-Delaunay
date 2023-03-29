@@ -17,3 +17,5 @@ exec
 *.gif
 gmon.out
 analyse.txt
+sortie.sol
+sortie.mesh
